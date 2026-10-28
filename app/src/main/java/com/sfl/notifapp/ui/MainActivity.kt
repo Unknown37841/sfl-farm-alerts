@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.sfl.notifapp.R
 import com.sfl.notifapp.data.api.SflApiClient
@@ -43,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
     private var allTimers: List<FarmTimerItem> = emptyList()
     private var selectedCategory: TimerCategory? = null
+    private var currentCategories: List<TimerCategory?> = listOf(null)
 
     // Handler for periodic 1-second countdown ticker
     private val tickerHandler = Handler(Looper.getMainLooper())
@@ -73,6 +77,7 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         setupRecyclerView()
+        setupSwipeGestures()
         checkPermissions()
 
         // Load cached timers immediately for offline instant start
@@ -236,6 +241,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateCategoryChips() {
         val distinctCategories = allTimers.map { it.category }.distinctBy { it.key }.sortedBy { it.displayName }
+        currentCategories = listOf(null) + distinctCategories
 
         binding.chipGroupFilters.removeAllViews()
 
@@ -246,8 +252,7 @@ class MainActivity : AppCompatActivity() {
             isCheckable = true
             isChecked = (selectedCategory == null)
             setOnClickListener {
-                selectedCategory = null
-                updateFilteredList()
+                selectCategory(null, animated = true)
             }
         }
         binding.chipGroupFilters.addView(chipAll)
@@ -261,11 +266,159 @@ class MainActivity : AppCompatActivity() {
                 isCheckable = true
                 isChecked = (selectedCategory == category)
                 setOnClickListener {
-                    selectedCategory = category
-                    updateFilteredList()
+                    selectCategory(category, animated = true)
                 }
             }
             binding.chipGroupFilters.addView(chip)
+        }
+    }
+
+    private fun navigateToNextCategory() {
+        val currentIndex = currentCategories.indexOf(selectedCategory).coerceAtLeast(0)
+        if (currentIndex < currentCategories.size - 1) {
+            selectCategory(currentCategories[currentIndex + 1], animated = true, slideLeft = true)
+        }
+    }
+
+    private fun navigateToPrevCategory() {
+        val currentIndex = currentCategories.indexOf(selectedCategory).coerceAtLeast(0)
+        if (currentIndex > 0) {
+            selectCategory(currentCategories[currentIndex - 1], animated = true, slideLeft = false)
+        }
+    }
+
+    private fun selectCategory(cat: TimerCategory?, animated: Boolean = true, slideLeft: Boolean = true) {
+        if (selectedCategory == cat && animated) return
+        val oldIndex = currentCategories.indexOf(selectedCategory).coerceAtLeast(0)
+        selectedCategory = cat
+        val targetIndex = currentCategories.indexOf(cat).coerceAtLeast(0)
+
+        // 1. Update Chip UI & smooth scroll into view
+        updateChipSelection(targetIndex)
+
+        // 2. Animate list transition if container is ready
+        if (animated && binding.recyclerTimers.width > 0) {
+            val direction = if (targetIndex != oldIndex) targetIndex > oldIndex else slideLeft
+            val slideOutX = if (direction) -binding.recyclerTimers.width.toFloat() * 0.35f else binding.recyclerTimers.width.toFloat() * 0.35f
+            val slideInX = -slideOutX
+
+            binding.recyclerTimers.animate()
+                .translationX(slideOutX)
+                .alpha(0.1f)
+                .setDuration(110)
+                .withEndAction {
+                    updateFilteredList()
+                    binding.recyclerTimers.translationX = slideInX
+                    binding.recyclerTimers.animate()
+                        .translationX(0f)
+                        .alpha(1f)
+                        .setDuration(130)
+                        .start()
+                }
+                .start()
+        } else {
+            updateFilteredList()
+        }
+    }
+
+    private fun updateChipSelection(targetIndex: Int) {
+        val group = binding.chipGroupFilters
+        for (i in 0 until group.childCount) {
+            val chip = group.getChildAt(i) as? Chip ?: continue
+            val isTarget = (i == targetIndex)
+            if (chip.isChecked != isTarget) {
+                chip.isChecked = isTarget
+            }
+            if (isTarget) {
+                binding.scrollFilters.post {
+                    val scrollX = chip.left - (binding.scrollFilters.width / 2) + (chip.width / 2)
+                    binding.scrollFilters.smoothScrollTo(scrollX.coerceAtLeast(0), 0)
+                }
+            }
+        }
+    }
+
+    private fun setupSwipeGestures() {
+        val density = resources.displayMetrics.density
+        val swipeThreshold = (50 * density).toInt()
+        val swipeVelocityThreshold = (100 * density).toInt()
+
+        val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                if (e1 == null) return false
+                val diffX = e2.x - e1.x
+                val diffY = e2.y - e1.y
+                if (kotlin.math.abs(diffX) > kotlin.math.abs(diffY) * 1.3f &&
+                    kotlin.math.abs(diffX) > swipeThreshold &&
+                    kotlin.math.abs(velocityX) > swipeVelocityThreshold
+                ) {
+                    if (diffX < 0) {
+                        navigateToNextCategory()
+                    } else {
+                        navigateToPrevCategory()
+                    }
+                    return true
+                }
+                return false
+            }
+        })
+
+        var startX = 0f
+        var startY = 0f
+        var isHorizontalSwipe = false
+
+        fun handleTouch(event: MotionEvent): Boolean {
+            gestureDetector.onTouchEvent(event)
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    startX = event.x
+                    startY = event.y
+                    isHorizontalSwipe = false
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.x - startX
+                    val dy = event.y - startY
+                    if (!isHorizontalSwipe && kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.5f && kotlin.math.abs(dx) > swipeThreshold) {
+                        isHorizontalSwipe = true
+                        binding.swipeRefresh.isEnabled = false
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    binding.swipeRefresh.isEnabled = true
+                    if (isHorizontalSwipe) {
+                        val dx = event.x - startX
+                        if (dx < -swipeThreshold) {
+                            navigateToNextCategory()
+                        } else if (dx > swipeThreshold) {
+                            navigateToPrevCategory()
+                        }
+                        isHorizontalSwipe = false
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
+        binding.recyclerTimers.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                handleTouch(e)
+                return isHorizontalSwipe
+            }
+
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
+                handleTouch(e)
+            }
+        })
+
+        binding.emptyView.setOnTouchListener { _, event ->
+            handleTouch(event)
+            true
         }
     }
 

@@ -40,7 +40,8 @@ class TimerAdapter : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(Ti
             binding.tvTitle.text = item.title
 
             val readyTimeStr = hourMinFormat.format(Date(item.readyAt))
-            binding.tvSubtitle.text = "${item.category.displayName} · Ready at $readyTimeStr"
+            val countStr = if (item.count > 1) "${item.count} items" else "1 item"
+            binding.tvSubtitle.text = "${item.category.displayName} · $countStr · Ready at $readyTimeStr"
 
             val remainingMs = item.remainingMs
             if (remainingMs <= 0L) {

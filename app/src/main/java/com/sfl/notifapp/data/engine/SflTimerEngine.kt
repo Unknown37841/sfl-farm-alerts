@@ -179,9 +179,9 @@ object SflTimerEngine {
             val plantedAt = crop.get("plantedAt").asLong
             val name = crop.getSafeString("name") ?: "Crop"
             val baseDur = CROP_DURATIONS[name] ?: 3600_000L
-            val readyAt = crop.getSafeLong("readyAt") ?: (plantedAt + baseDur)
             val discount = crop.getSafeLong("boostedTime") ?: 0L
             val dur = (baseDur - discount).coerceAtLeast(60_000L)
+            val readyAt = crop.getSafeLong("readyAt") ?: (plantedAt + dur)
 
             out.add(RawTimer(TimerCategory.CROPS, name, readyAt, dur, "🌾"))
         }
@@ -206,9 +206,9 @@ object SflTimerEngine {
 
             val name = fruit.getSafeString("name") ?: "Fruit"
             val baseDur = FRUIT_DURATIONS[name] ?: (8 * 3600_000L)
-            val readyAt = fruit.getSafeLong("readyAt") ?: (startedAt + baseDur)
             val discount = fruit.getSafeLong("boostedTime") ?: 0L
             val dur = (baseDur - discount).coerceAtLeast(60_000L)
+            val readyAt = fruit.getSafeLong("readyAt") ?: (startedAt + dur)
 
             out.add(RawTimer(TimerCategory.FRUIT_PATCHES, name, readyAt, dur, "🍊"))
         }
@@ -225,9 +225,9 @@ object SflTimerEngine {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Greenhouse Plant"
                 val baseDur = GREENHOUSE_DURATIONS[name] ?: (12 * 3600_000L)
-                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
                 val discount = plant.getSafeLong("boostedTime") ?: 0L
                 val dur = (baseDur - discount).coerceAtLeast(60_000L)
+                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + dur)
                 out.add(RawTimer(TimerCategory.GREENHOUSE, name, readyAt, dur, "🏡"))
             }
         }
@@ -267,9 +267,9 @@ object SflTimerEngine {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Flower"
                 val baseDur = getFlowerDuration(name)
-                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
                 val discount = plant.getSafeLong("boostedTime") ?: 0L
                 val dur = (baseDur - discount).coerceAtLeast(3600_000L)
+                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + dur)
                 out.add(RawTimer(TimerCategory.FLOWERS, name, readyAt, dur, "🌸"))
             }
         }
@@ -304,7 +304,9 @@ object SflTimerEngine {
                 val wood = obj.getAsJsonObjectSafe("wood")
                 if (wood != null && wood.has("choppedAt")) {
                     val choppedAt = wood.get("choppedAt").asLong
-                    val dur = wood.getSafeLong("duration") ?: TREE_DURATION_MS
+                    val baseDur = wood.getSafeLong("duration") ?: TREE_DURATION_MS
+                    val discount = wood.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Wood (Tree)", choppedAt + dur, dur, "🪓"))
                 }
             }
@@ -317,7 +319,9 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: STONE_DURATION_MS
+                    val baseDur = stone.getSafeLong("duration") ?: STONE_DURATION_MS
+                    val discount = stone.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Stone", minedAt + dur, dur, "🪨"))
                 }
             }
@@ -330,7 +334,9 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: IRON_DURATION_MS
+                    val baseDur = stone.getSafeLong("duration") ?: IRON_DURATION_MS
+                    val discount = stone.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Iron", minedAt + dur, dur, "⛏️"))
                 }
             }
@@ -343,7 +349,9 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: GOLD_DURATION_MS
+                    val baseDur = stone.getSafeLong("duration") ?: GOLD_DURATION_MS
+                    val discount = stone.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Gold", minedAt + dur, dur, "🪙"))
                 }
             }
@@ -356,7 +364,9 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: CRIMSTONE_DURATION_MS
+                    val baseDur = stone.getSafeLong("duration") ?: CRIMSTONE_DURATION_MS
+                    val discount = stone.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Crimstone", minedAt + dur, dur, "💎"))
                 }
             }
@@ -369,7 +379,9 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: SUNSTONE_DURATION_MS
+                    val baseDur = stone.getSafeLong("duration") ?: SUNSTONE_DURATION_MS
+                    val discount = stone.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Sunstone", minedAt + dur, dur, "☀️"))
                 }
             }
@@ -383,7 +395,9 @@ object SflTimerEngine {
                 val oilData = obj.getAsJsonObjectSafe("oil")
                 if (oilData != null && oilData.has("drilledAt")) {
                     val drilledAt = oilData.get("drilledAt").asLong
-                    val dur = oilData.getSafeLong("duration") ?: OIL_DURATION_MS
+                    val baseDur = oilData.getSafeLong("duration") ?: OIL_DURATION_MS
+                    val discount = oilData.getSafeLong("boostedTime") ?: 0L
+                    val dur = (baseDur - discount).coerceAtLeast(60_000L)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Oil Reserve", drilledAt + dur, dur, "🛢️"))
                 }
             }
@@ -759,16 +773,12 @@ object SflTimerEngine {
     private fun createTimerItem(cluster: List<RawTimer>): FarmTimerItem {
         val representative = cluster.first()
         val count = cluster.size
-        val title = if (count > 1) {
-            "${representative.itemName} (x$count)"
-        } else {
-            representative.itemName
-        }
+        val title = "${representative.itemName} (x$count)"
 
         val body = if (count > 1) {
             "$count items in ${representative.category.displayName} are ready!"
         } else {
-            "${representative.itemName} is ready to collect!"
+            "1 item in ${representative.category.displayName} is ready to collect!"
         }
 
         val id = "${representative.category.key}_${representative.itemName}_${representative.readyAt}".hashCode().toString()
