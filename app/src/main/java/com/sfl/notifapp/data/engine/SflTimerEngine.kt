@@ -46,8 +46,30 @@ object SflTimerEngine {
         "Blueberry" to 6 * 3600_000L,
         "Orange" to 8 * 3600_000L,
         "Apple" to 12 * 3600_000L,
-        "Banana" to 12 * 3600_000L
+        "Banana" to 12 * 3600_000L,
+        "Celestine" to 6 * 3600_000L,
+        "Lunara" to 12 * 3600_000L,
+        "Duskberry" to 24 * 3600_000L,
+        "Grape" to 12 * 3600_000L
     )
+
+    private val GREENHOUSE_DURATIONS = mapOf(
+        "Grape" to 12 * 3600_000L,
+        "Rice" to 16 * 3600_000L,
+        "Olive" to 24 * 3600_000L
+    )
+
+    private fun getFlowerDuration(name: String): Long {
+        val lower = name.lowercase()
+        return when {
+            lower.contains("carnation") || lower.contains("lotus") -> 5 * 24 * 3600_000L // 5 days (Lily)
+            lower.contains("balloon") || lower.contains("daffodil") -> 2 * 24 * 3600_000L // 2 days (Bloom)
+            lower.contains("edelweiss") || lower.contains("gladiolus") ||
+            lower.contains("lavender") || lower.contains("clover") -> 3 * 24 * 3600_000L // 3 days
+            lower.contains("pansy") || lower.contains("cosmos") -> 24 * 3600_000L // 1 day (Sunpetal)
+            else -> 24 * 3600_000L
+        }
+    }
 
     private val POWER_SKILL_COOLDOWNS = mapOf(
         "Instant Growth" to 24 * 3600_000L,
@@ -155,8 +177,10 @@ object SflTimerEngine {
 
             val plantedAt = crop.get("plantedAt").asLong
             val name = crop.getSafeString("name") ?: "Crop"
-            val dur = crop.getSafeLong("boostedTime") ?: CROP_DURATIONS[name] ?: 3600_000L
-            val readyAt = crop.getSafeLong("readyAt") ?: (plantedAt + dur)
+            val baseDur = CROP_DURATIONS[name] ?: 3600_000L
+            val readyAt = crop.getSafeLong("readyAt") ?: (plantedAt + baseDur)
+            val discount = crop.getSafeLong("boostedTime") ?: 0L
+            val dur = (baseDur - discount).coerceAtLeast(60_000L)
 
             out.add(RawTimer(TimerCategory.CROPS, name, readyAt, dur, "🌾"))
         }
@@ -169,12 +193,21 @@ object SflTimerEngine {
             if (!elem.isJsonObject) continue
             val patch = elem.asJsonObject
             val fruit = patch.getAsJsonObjectSafe("fruit") ?: continue
-            if (!fruit.has("plantedAt")) continue
 
-            val plantedAt = fruit.get("plantedAt").asLong
+            val harvestsLeft = fruit.getSafeLong("harvestsLeft") ?: 1L
+            // If tree is depleted (0 harvests left), skip timer until chopped and replanted
+            if (harvestsLeft <= 0L) continue
+
+            val plantedAt = fruit.getSafeLong("plantedAt") ?: 0L
+            val harvestedAt = fruit.getSafeLong("harvestedAt") ?: 0L
+            val startedAt = maxOf(harvestedAt, plantedAt)
+            if (startedAt <= 0L) continue
+
             val name = fruit.getSafeString("name") ?: "Fruit"
-            val dur = fruit.getSafeLong("boostedTime") ?: FRUIT_DURATIONS[name] ?: (4 * 3600_000L)
-            val readyAt = fruit.getSafeLong("readyAt") ?: (plantedAt + dur)
+            val baseDur = FRUIT_DURATIONS[name] ?: (8 * 3600_000L)
+            val readyAt = fruit.getSafeLong("readyAt") ?: (startedAt + baseDur)
+            val discount = fruit.getSafeLong("boostedTime") ?: 0L
+            val dur = (baseDur - discount).coerceAtLeast(60_000L)
 
             out.add(RawTimer(TimerCategory.FRUIT_PATCHES, name, readyAt, dur, "🍊"))
         }
@@ -190,8 +223,10 @@ object SflTimerEngine {
             if (plant.has("plantedAt")) {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Greenhouse Plant"
-                val dur = plant.getSafeLong("boostedTime") ?: (12 * 3600_000L)
-                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + dur)
+                val baseDur = GREENHOUSE_DURATIONS[name] ?: (12 * 3600_000L)
+                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
+                val discount = plant.getSafeLong("boostedTime") ?: 0L
+                val dur = (baseDur - discount).coerceAtLeast(60_000L)
                 out.add(RawTimer(TimerCategory.GREENHOUSE, name, readyAt, dur, "🏡"))
             }
         }
@@ -230,8 +265,10 @@ object SflTimerEngine {
             if (plant.has("plantedAt")) {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Flower"
-                val dur = plant.getSafeLong("boostedTime") ?: (24 * 3600_000L)
-                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + dur)
+                val baseDur = getFlowerDuration(name)
+                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
+                val discount = plant.getSafeLong("boostedTime") ?: 0L
+                val dur = (baseDur - discount).coerceAtLeast(3600_000L)
                 out.add(RawTimer(TimerCategory.FLOWERS, name, readyAt, dur, "🌸"))
             }
         }
