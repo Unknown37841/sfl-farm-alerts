@@ -343,6 +343,18 @@ class MainActivity : AppCompatActivity() {
         val swipeThreshold = (50 * density).toInt()
         val swipeVelocityThreshold = (100 * density).toInt()
 
+        var hasNavigatedThisGesture = false
+
+        fun tryNavigate(forward: Boolean) {
+            if (hasNavigatedThisGesture) return
+            hasNavigatedThisGesture = true
+            if (forward) {
+                navigateToNextCategory()
+            } else {
+                navigateToPrevCategory()
+            }
+        }
+
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onFling(
                 e1: MotionEvent?,
@@ -357,11 +369,7 @@ class MainActivity : AppCompatActivity() {
                     kotlin.math.abs(diffX) > swipeThreshold &&
                     kotlin.math.abs(velocityX) > swipeVelocityThreshold
                 ) {
-                    if (diffX < 0) {
-                        navigateToNextCategory()
-                    } else {
-                        navigateToPrevCategory()
-                    }
+                    tryNavigate(diffX < 0)
                     return true
                 }
                 return false
@@ -379,6 +387,7 @@ class MainActivity : AppCompatActivity() {
                     startX = event.x
                     startY = event.y
                     isHorizontalSwipe = false
+                    hasNavigatedThisGesture = false
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.x - startX
@@ -393,13 +402,14 @@ class MainActivity : AppCompatActivity() {
                     if (isHorizontalSwipe) {
                         val dx = event.x - startX
                         if (dx < -swipeThreshold) {
-                            navigateToNextCategory()
+                            tryNavigate(true)
                         } else if (dx > swipeThreshold) {
-                            navigateToPrevCategory()
+                            tryNavigate(false)
                         }
                         isHorizontalSwipe = false
                         return true
                     }
+                    hasNavigatedThisGesture = false
                 }
             }
             return false
