@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bg_card"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Drag handle -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_badge_ready" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Farm Settings &amp; Alerts"
+            android:textColor="@color/sunflower_yellow"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Configure farm ID and notification preferences"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <!-- Farm ID Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Farm ID"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etFarmId"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_input"
+                android:hint="Enter Farm ID (e.g. 1234)"
+                android:inputType="number"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_muted"
+                android:textSize="14sp" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveFarmId"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="46dp"
+                android:backgroundTint="@color/sunflower_gold"
+                android:text="Save"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                app:cornerRadius="10dp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="16dp"
+            android:background="@color/border_subtle" />
+
+        <!-- Master Switch -->
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchMasterNotifs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Enable Offline Farm Alerts"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Hardware RTC alarms ring even without internet"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Categories"
+            android:textColor="@color/sunflower_yellow"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <!-- Category Switches -->
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchCrops"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🌾 Crops &amp; Fruit Patches"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchTrees"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🪓 Trees &amp; Wood Recovery"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchMining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="⛏️ Mining (Stone, Iron, Gold, Oil)"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchComposters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🪱 Composters (Mix &amp; Worms)"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchCooking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🍲 Cooking (Kitchen, Deli, Bakery)"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchAnimals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🐔 Animals &amp; Livestock"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchGreenhouse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🏡 Greenhouse Crops"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchBeehives"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🐝 Beehives &amp; Honey"
+            android:textColor="@color/text_primary" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="16dp"
+            android:background="@color/border_subtle" />
+
+        <!-- Diagnostic & Reliability Tools -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reliability &amp; Diagnostics"
+            android:textColor="@color/sunflower_yellow"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTestNotification"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/bg_card_secondary"
+            android:text="🔔 Send Test Alarm (in 5 sec)"
+            android:textColor="@color/text_primary"
+            app:cornerRadius="10dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBatteryOptimization"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:backgroundTint="@color/bg_card_secondary"
+            android:text="🔋 Allow Background (Disable Battery Saving)"
+            android:textColor="@color/text_primary"
+            app:cornerRadius="10dp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

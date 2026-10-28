@@ -1,0 +1,46 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Output files from the build process
+build/
+app/build/
+bin/
+gen/
+out/
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+/bin/
+/gen/
+/out/
+app/release/
+app/debug/
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Keystore and secrets
+*.jks
+*.keystore
+*.key
+google-services.json

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SFL Alerts</string>
+    <string name="channel_name">Farm Alerts &amp; Timers</string>
+    <string name="channel_description">Notifications when crops, trees, animals, and resources are ready to collect</string>
+</resources>
