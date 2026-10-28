@@ -5,6 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.sfl.notifapp.data.model.FarmTimerItem
 import com.sfl.notifapp.data.model.TimerCategory
+import com.sfl.notifapp.data.model.resolveItemIcon
 import java.util.Calendar
 import java.util.TimeZone
 import kotlin.math.abs
@@ -770,7 +771,8 @@ object SflTimerEngine {
             readyAt = representative.readyAt,
             totalDurationMs = representative.durationMs,
             count = count,
-            iconEmoji = representative.icon
+            iconEmoji = representative.icon,
+            specificIconResId = resolveItemIcon(representative.itemName, representative.category)
         )
     }
 

@@ -110,8 +110,151 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginVertical="16dp"
+            android:layout_marginVertical="14dp"
             android:background="@color/border_subtle" />
+
+        <!-- Background & Battery Settings Card (Prominent at top) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#1F1B12"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/sunflower_amber_dark"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🛡️ کارکرد در پس‌زمینه و Auto-Start"
+                        android:textColor="@color/sunflower_yellow"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvBatteryStatusBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_badge_ready"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="وضعیت باتری"
+                        android:textColor="@color/badge_ready_text"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="برای ارسال بموقع اعلان‌ها وقتی برنامه بسته است، حتماً شروع خودکار (Auto-Start) و معافیت باتری را فعال کنید."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp" />
+
+                <!-- Action buttons -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAutostartSettings"
+                    style="@style/Widget.Material3.Button.ElevatedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="#382E18"
+                    android:padding="0dp"
+                    android:text="🚀 تنظیمات شروع خودکار (Auto-Start)"
+                    android:textColor="@color/sunflower_yellow"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="8dp"
+                    app:strokeColor="@color/sunflower_gold"
+                    app:strokeWidth="1dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBatteryOptimization"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:padding="0dp"
+                        android:text="🔋 معافیت باتری"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="@color/border_subtle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnExactAlarm"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:padding="0dp"
+                        android:text="⏰ آلارم‌های دقیق"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="@color/border_subtle" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBackgroundGuide"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:padding="0dp"
+                        android:text="📖 راهنمای گوشی‌ها"
+                        android:textColor="@color/sunflower_yellow"
+                        android:textSize="11sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="@color/sunflower_amber_dark" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestNotification"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:padding="0dp"
+                        android:text="🔔 تست اعلان (5s)"
+                        android:textColor="@color/sunflower_yellow"
+                        android:textSize="11sp"
+                        app:cornerRadius="8dp"
+                        app:strokeColor="@color/sunflower_amber_dark" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- SFL Overview Categories Section -->
         <LinearLayout
@@ -194,117 +337,15 @@
             android:layout_marginTop="8dp"
             android:nestedScrollingEnabled="false" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="16dp"
-            android:background="@color/border_subtle" />
-
-        <!-- Background & Battery Settings Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Background &amp; Auto-Sync Reliability"
-            android:textColor="@color/sunflower_yellow"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Ensure alerts fire on time even if app is closed or phone is locked"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="vertical">
-
-            <!-- Guide Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBackgroundGuide"
-                style="@style/Widget.Material3.Button.ElevatedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#2D2817"
-                android:text="📖 Step-by-Step Guide (Xiaomi / Samsung)"
-                android:textColor="@color/sunflower_yellow"
-                app:cornerRadius="10dp"
-                app:strokeColor="@color/sunflower_amber_dark"
-                app:strokeWidth="1dp" />
-
-            <!-- Two buttons side-by-side -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBatteryOptimization"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:text="🔋 Battery: Unrestricted"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:cornerRadius="10dp"
-                    app:strokeColor="@color/border_subtle" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnExactAlarm"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:text="⏰ Exact Alarms"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    app:cornerRadius="10dp"
-                    app:strokeColor="@color/border_subtle" />
-            </LinearLayout>
-
-            <!-- Autostart / App Info Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAutostartSettings"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="🚀 App Info / Autostart Settings"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                app:cornerRadius="10dp"
-                app:strokeColor="@color/border_subtle" />
-        </LinearLayout>
-
-        <!-- Test Notification -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnTestNotification"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="🔔 Send Test Notification"
-            android:textColor="@color/sunflower_yellow"
-            app:cornerRadius="10dp"
-            app:strokeColor="@color/sunflower_amber_dark" />
-
         <!-- Close Settings Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCloseSettings"
             style="@style/Widget.Material3.Button.ElevatedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:backgroundTint="@color/sunflower_gold"
-            android:text="Apply &amp; Done"
+            android:text="اعمال و بستن تنظیمات (Apply &amp; Done)"
             android:textColor="#000000"
             android:textStyle="bold"
             app:cornerRadius="10dp" />

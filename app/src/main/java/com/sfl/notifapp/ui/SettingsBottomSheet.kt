@@ -12,8 +12,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.sfl.notifapp.R
 import com.sfl.notifapp.data.model.SFL_OVERVIEW_CATEGORIES
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.BottomSheetSettingsBinding
@@ -128,6 +130,27 @@ class SettingsBottomSheet(
         // 7. Close / Apply Button
         binding.btnCloseSettings.setOnClickListener {
             dismiss()
+        }
+
+        updateBatteryBadge()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateBatteryBadge()
+    }
+
+    private fun updateBatteryBadge() {
+        val ctx = context ?: return
+        val isIgnoring = BackgroundPermissionHelper.isIgnoringBatteryOptimizations(ctx)
+        if (isIgnoring) {
+            binding.tvBatteryStatusBadge.text = "✓ معافیت فعال (عالی)"
+            binding.tvBatteryStatusBadge.setBackgroundResource(R.drawable.bg_badge_ready)
+            binding.tvBatteryStatusBadge.setTextColor(ContextCompat.getColor(ctx, R.color.badge_ready_text))
+        } else {
+            binding.tvBatteryStatusBadge.text = "⚠️ بهینه‌سازی محدودکننده"
+            binding.tvBatteryStatusBadge.setBackgroundResource(R.drawable.bg_badge_timer)
+            binding.tvBatteryStatusBadge.setTextColor(ContextCompat.getColor(ctx, R.color.badge_timer_text))
         }
     }
 
