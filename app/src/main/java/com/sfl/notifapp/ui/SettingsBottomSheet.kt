@@ -67,8 +67,10 @@ class SettingsBottomSheet(
 
         // Category Switches
         setupCategorySwitch(binding.switchCrops, TimerCategory.CROPS)
+        setupCategorySwitch(binding.switchFruitTrees, TimerCategory.FRUIT_TREES)
         setupCategorySwitch(binding.switchTrees, TimerCategory.TREES)
         setupCategorySwitch(binding.switchMining, TimerCategory.MINING)
+        setupCategorySwitch(binding.switchOil, TimerCategory.OIL)
         setupCategorySwitch(binding.switchComposters, TimerCategory.COMPOSTERS)
         setupCategorySwitch(binding.switchCooking, TimerCategory.COOKING)
         setupCategorySwitch(binding.switchAnimals, TimerCategory.ANIMALS)

@@ -36,7 +36,7 @@ class TimerAdapter : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(Ti
 
         fun bind(item: FarmTimerItem) {
             val context = binding.root.context
-            binding.tvIconEmoji.text = item.iconEmoji
+            binding.ivIcon.setImageResource(item.iconResId)
             binding.tvTitle.text = item.title
 
             val readyTimeStr = hourMinFormat.format(Date(item.readyAt))

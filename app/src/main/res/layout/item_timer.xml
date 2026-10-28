@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- Emoji Icon Container -->
+        <!-- Pixel Art Icon Container -->
         <FrameLayout
             android:id="@+id/iconContainer"
             android:layout_width="44dp"
@@ -27,13 +27,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/tvIconEmoji"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_gravity="center"
-                android:textSize="22sp"
-                tools:text="🌾" />
+                android:scaleType="fitCenter"
+                android:contentDescription="Item Icon"
+                tools:src="@drawable/ic_crop" />
         </FrameLayout>
 
         <!-- Title & Subtitle -->

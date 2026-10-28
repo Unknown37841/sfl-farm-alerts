@@ -13,30 +13,38 @@ object SflTimerEngine {
     private val CROP_DURATIONS = mapOf(
         "Sunflower" to 60_000L,
         "Potato" to 5 * 60_000L,
+        "Rhubarb" to 10 * 60_000L,
         "Pumpkin" to 30 * 60_000L,
+        "Zucchini" to 30 * 60_000L,
         "Carrot" to 60 * 60_000L,
+        "Yam" to 60 * 60_000L,
         "Cabbage" to 2 * 3600_000L,
+        "Broccoli" to 2 * 3600_000L,
+        "Soybean" to 3 * 3600_000L,
         "Beetroot" to 4 * 3600_000L,
+        "Pepper" to 4 * 3600_000L,
         "Cauliflower" to 8 * 3600_000L,
         "Parsnip" to 12 * 3600_000L,
         "Eggplant" to 16 * 3600_000L,
         "Corn" to 20 * 3600_000L,
+        "Onion" to 20 * 3600_000L,
         "Radish" to 24 * 3600_000L,
         "Wheat" to 24 * 3600_000L,
-        "Barley" to 24 * 3600_000L,
+        "Turnip" to 24 * 3600_000L,
         "Kale" to 36 * 3600_000L,
-        "Soybean" to 4 * 3600_000L,
-        "Rice" to 4 * 3600_000L,
-        "Olive" to 12 * 3600_000L
+        "Artichoke" to 36 * 3600_000L,
+        "Barley" to 48 * 3600_000L,
+        "Saltwort" to 12 * 3600_000L,
+        "Crystal Leaf" to 24 * 3600_000L
     )
 
     private val FRUIT_DURATIONS = mapOf(
-        "Apple" to 4 * 3600_000L,
-        "Orange" to 8 * 3600_000L,
-        "Blueberry" to 6 * 3600_000L,
-        "Banana" to 12 * 3600_000L,
         "Tomato" to 2 * 3600_000L,
-        "Lemon" to 4 * 3600_000L
+        "Lemon" to 4 * 3600_000L,
+        "Blueberry" to 6 * 3600_000L,
+        "Orange" to 8 * 3600_000L,
+        "Apple" to 12 * 3600_000L,
+        "Banana" to 12 * 3600_000L
     )
 
     private const val TREE_DURATION_MS = 2 * 3600_000L
@@ -196,16 +204,33 @@ object SflTimerEngine {
 
     private fun extractCrops(farm: JsonObject, out: MutableList<RawTimer>) {
         val crops = farm.getAsJsonObjectSafe("crops") ?: return
-        for ((_, elem) in crops.entrySet()) {
+
+        // Exclude destroyed plots if tornado event is active & unprotected
+        val destroyedPlotIds = mutableSetOf<String>()
+        val calendar = farm.getAsJsonObjectSafe("calendar")
+        val tornado = calendar?.getAsJsonObjectSafe("tornado")
+        val isTornadoActive = tornado != null && (!tornado.has("protected") || !tornado.get("protected").asBoolean)
+        if (isTornadoActive) {
+            val sortedPlots = crops.entrySet()
+                .filter { it.value.isJsonObject }
+                .sortedBy { it.value.asJsonObject.getSafeLong("createdAt") ?: 0L }
+            val halfCount = sortedPlots.size / 2
+            for (i in 0 until halfCount) {
+                destroyedPlotIds.add(sortedPlots[i].key)
+            }
+        }
+
+        for ((plotId, elem) in crops.entrySet()) {
+            if (destroyedPlotIds.contains(plotId)) continue
             if (!elem.isJsonObject) continue
             val c = elem.asJsonObject.getAsJsonObjectSafe("crop") ?: continue
             if (c.has("plantedAt")) {
                 val plantedAt = c.get("plantedAt").asLong
+                if (plantedAt <= 0L) continue
                 val name = c.getSafeString("name") ?: "Crop"
                 val baseDur = CROP_DURATIONS[name] ?: 3600_000L
-                val dur = c.getSafeLong("boostedTime") ?: baseDur
-                val readyAt = c.getSafeLong("readyAt") ?: (plantedAt + dur)
-                out.add(RawTimer(TimerCategory.CROPS, name, readyAt, dur, "🌾"))
+                val readyAt = plantedAt + baseDur
+                out.add(RawTimer(TimerCategory.CROPS, name, readyAt, baseDur, "🌾"))
             }
         }
     }
@@ -215,14 +240,18 @@ object SflTimerEngine {
         for ((_, elem) in fruits.entrySet()) {
             if (!elem.isJsonObject) continue
             val f = elem.asJsonObject.getAsJsonObjectSafe("fruit") ?: continue
-            if (f.has("plantedAt")) {
-                val plantedAt = f.get("plantedAt").asLong
-                val name = f.getSafeString("name") ?: "Fruit"
-                val baseDur = FRUIT_DURATIONS[name] ?: (4 * 3600_000L)
-                val dur = f.getSafeLong("boostedTime") ?: baseDur
-                val readyAt = f.getSafeLong("readyAt") ?: (plantedAt + dur)
-                out.add(RawTimer(TimerCategory.CROPS, "$name Fruit", readyAt, dur, "🍊"))
-            }
+            val harvestsLeft = f.getSafeLong("harvestsLeft") ?: 0L
+            if (harvestsLeft <= 0L) continue // Tree is dead / exhausted
+
+            val plantedAt = f.getSafeLong("plantedAt") ?: 0L
+            val harvestedAt = f.getSafeLong("harvestedAt") ?: 0L
+            val startedAt = if (harvestedAt > 0L) harvestedAt else plantedAt
+            if (startedAt <= 0L) continue
+
+            val name = f.getSafeString("name") ?: "Fruit"
+            val dur = FRUIT_DURATIONS[name] ?: (8 * 3600_000L)
+            val readyAt = startedAt + dur
+            out.add(RawTimer(TimerCategory.FRUIT_TREES, "$name Tree", readyAt, dur, "🍊"))
         }
     }
 
@@ -234,7 +263,7 @@ object SflTimerEngine {
             if (oil.has("drilledAt")) {
                 val drilledAt = oil.get("drilledAt").asLong
                 val dur = oil.getSafeLong("boostedTime") ?: OIL_DURATION_MS
-                out.add(RawTimer(TimerCategory.MINING, "Oil Reserve", drilledAt + dur, dur, "🛢️"))
+                out.add(RawTimer(TimerCategory.OIL, "Oil Reserve", drilledAt + dur, dur, "🛢️"))
             }
         }
     }

@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         if (prefs.farmId.isNotBlank()) {
             syncFarm(showLoading = true)
         } else {
-            openSettingsSheet()
+            showFarmIdPromptDialog()
         }
     }
 
@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnFarmId.setOnClickListener {
-            openSettingsSheet()
+            showFarmIdPromptDialog()
         }
 
         binding.btnSettings.setOnClickListener {
@@ -137,8 +137,10 @@ class MainActivity : AppCompatActivity() {
         binding.chipGroupFilters.setOnCheckedStateChangeListener { _, checkedIds ->
             selectedCategory = when (checkedIds.firstOrNull()) {
                 R.id.chipCrops -> TimerCategory.CROPS
+                R.id.chipFruitTrees -> TimerCategory.FRUIT_TREES
                 R.id.chipTrees -> TimerCategory.TREES
                 R.id.chipMining -> TimerCategory.MINING
+                R.id.chipOil -> TimerCategory.OIL
                 R.id.chipComposters -> TimerCategory.COMPOSTERS
                 R.id.chipCooking -> TimerCategory.COOKING
                 R.id.chipAnimals -> TimerCategory.ANIMALS
@@ -148,6 +150,38 @@ class MainActivity : AppCompatActivity() {
             }
             updateFilteredList()
         }
+    }
+
+    private fun showFarmIdPromptDialog() {
+        val input = android.widget.EditText(this).apply {
+            hint = "Enter Farm ID (e.g. 1234)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(prefs.farmId)
+            setPadding(48, 36, 48, 36)
+            setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+            setHintTextColor(ContextCompat.getColor(context, R.color.text_muted))
+            background = ContextCompat.getDrawable(context, R.drawable.bg_input)
+        }
+
+        val container = android.widget.FrameLayout(this).apply {
+            setPadding(60, 20, 60, 20)
+            addView(input)
+        }
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("🌻 Sunflower Land Farm")
+            .setMessage("Please enter your SFL Farm ID to monitor crops, fruit trees, and timers:")
+            .setView(container)
+            .setPositiveButton("Save & Sync") { _, _ ->
+                val newId = input.text.toString().trim()
+                if (newId.isNotEmpty()) {
+                    prefs.farmId = newId
+                    binding.btnFarmId.text = "Farm #$newId"
+                    syncFarm(showLoading = true)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun openSettingsSheet() {

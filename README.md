@@ -11,12 +11,16 @@ Unlike web push notifications or browser service workers that often get throttle
 - ⏰ **100% Guaranteed Offline Alarms:** Uses hardware RTC timers. Once synced, alarms will ring on time even in airplane mode or with no network connection.
 - 🔄 **Reboot Persistence (`RECEIVE_BOOT_COMPLETED`):** Automatically reschedules all pending farm timers when the device restarts.
 - 🌾 **Comprehensive Game Support:**
-  - **Crops:** From Sunflowers to Radishes and exotic crops.
+  - **Crops:** From Sunflowers to Wheat, Radish, and chapter event crops.
+  - **Fruit Trees:** Dedicated tracking for Orange, Apple, Blueberry, Banana, Lemon, and Tomato trees with accurate multi-harvest replenishment.
   - **Trees:** Wood regeneration timers with replenishment tracking.
-  - **Mining:** Stone, Iron, Gold, Crimson Stones, Sunstone, and Oil reserves.
+  - **Mining & Oil:** Stone, Iron, Gold, Crimson Stones, Sunstone, and Oil reserve drilling.
   - **Composters:** Warding Compost, Sprout Mix, and Rapid Root.
   - **Cooking:** Kitchen, Bakery, Deli, and Smoothie Shack queues.
   - **Animals & Greenhouse:** Chickens, Greenhouse pots, and Beehives honey collection.
+- 🎨 **Official Sunflower Land Pixel Art & Game Aesthetic:** Uses authentic pixel art icons and warm color palette directly from Sunflower Land.
+- 🌪️ **Weather & Disaster Aware:** Accurately accounts for weather events (e.g. tornadoes) and excludes damaged or non-growing plots from false alarms.
+- 🚀 **Zero Hardcoded Farm ID:** Clean onboarding prompt for new users to enter any farm ID easily.
 - 🔕 **Selective Notification Categories:** Toggle alerts per category (e.g. only notify for Trees or Mining).
 - ⚡ **Anti-Spam Clustering:** Multiple items finishing in close proximity are grouped into a clean, single notification rather than continuous alert spam.
 - 🌐 **Intelligent Background Sync (`WorkManager`):** Automatically polls farm state when connected to Wi-Fi/cellular and updates pending alarms without user intervention.

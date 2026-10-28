@@ -1,37 +1,49 @@
 package com.sfl.notifapp.data.model
 
 import com.google.gson.annotations.SerializedName
+import com.sfl.notifapp.R
 
-enum class TimerCategory(val key: String, val displayName: String, val emoji: String) {
+enum class TimerCategory(
+    val key: String,
+    val displayName: String,
+    val emoji: String,
+    val iconResId: Int
+) {
     @SerializedName("crops")
-    CROPS("crops", "Crops", "🌾"),
+    CROPS("crops", "Crops", "🌾", R.drawable.ic_crop),
+
+    @SerializedName("fruit_trees")
+    FRUIT_TREES("fruit_trees", "Fruit Trees", "🍊", R.drawable.ic_fruit),
 
     @SerializedName("trees")
-    TREES("trees", "Trees", "🪓"),
+    TREES("trees", "Trees", "🪓", R.drawable.ic_tree),
 
     @SerializedName("mining")
-    MINING("mining", "Mining", "⛏️"),
+    MINING("mining", "Mining", "⛏️", R.drawable.ic_mining),
+
+    @SerializedName("oil")
+    OIL("oil", "Oil", "🛢️", R.drawable.ic_oil),
 
     @SerializedName("composters")
-    COMPOSTERS("composters", "Composters", "🪱"),
+    COMPOSTERS("composters", "Composters", "🪱", R.drawable.ic_compost),
 
     @SerializedName("cooking")
-    COOKING("cooking", "Cooking", "🍲"),
+    COOKING("cooking", "Cooking", "🍲", R.drawable.ic_cooking),
 
     @SerializedName("animals")
-    ANIMALS("animals", "Animals", "🐔"),
+    ANIMALS("animals", "Animals", "🐔", R.drawable.ic_animal),
 
     @SerializedName("greenhouse")
-    GREENHOUSE("greenhouse", "Greenhouse", "🏡"),
+    GREENHOUSE("greenhouse", "Greenhouse", "🏡", R.drawable.ic_greenhouse),
 
     @SerializedName("beehives")
-    BEEHIVES("beehives", "Beehives", "🐝"),
+    BEEHIVES("beehives", "Beehives", "🐝", R.drawable.ic_beehive),
 
     @SerializedName("flowers")
-    FLOWERS("flowers", "Flowers", "🌸"),
+    FLOWERS("flowers", "Flowers", "🌸", R.drawable.ic_crop),
 
     @SerializedName("other")
-    OTHER("other", "Other", "⏳");
+    OTHER("other", "Other", "⏳", R.drawable.ic_app_sunflower);
 
     companion object {
         fun fromKey(key: String): TimerCategory {
@@ -55,6 +67,9 @@ data class FarmTimerItem(
 
     val remainingMs: Long
         get() = (readyAt - System.currentTimeMillis()).coerceAtLeast(0L)
+
+    val iconResId: Int
+        get() = category.iconResId
 
     override fun compareTo(other: FarmTimerItem): Int {
         return this.readyAt.compareTo(other.readyAt)

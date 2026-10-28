@@ -121,7 +121,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="🌾 Crops &amp; Fruit Patches"
+            android:text="🌾 Crops (Wheat, Sunflower, ...)"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchFruitTrees"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🍊 Fruit Trees (Orange, Apple, ...)"
             android:textColor="@color/text_primary" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
@@ -137,7 +145,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="⛏️ Mining (Stone, Iron, Gold, Oil)"
+            android:text="⛏️ Mining (Stone, Iron, Gold, Crimstone)"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchOil"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="🛢️ Oil Reserves"
             android:textColor="@color/text_primary" />
 
         <com.google.android.material.materialswitch.MaterialSwitch

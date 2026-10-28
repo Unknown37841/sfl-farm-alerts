@@ -44,3 +44,4 @@ $RECYCLE.BIN/
 *.keystore
 *.key
 google-services.json
+*_debug.json
