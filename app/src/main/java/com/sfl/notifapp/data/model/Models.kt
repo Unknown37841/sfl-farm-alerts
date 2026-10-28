@@ -14,25 +14,25 @@ enum class TimerCategory(
     val iconResId: Int
 ) {
     @SerializedName("crops")
-    CROPS("crops", "Crops", "محصولات زراعی", "🌾", R.drawable.ic_crop),
+    CROPS("crops", "Crops", "محصولات زراعی", "🌾", R.drawable.ic_item_wheat),
 
     @SerializedName("fruit_patches")
-    FRUIT_PATCHES("fruit_patches", "Fruit Patches", "درختان میوه", "🍊", R.drawable.ic_fruit),
+    FRUIT_PATCHES("fruit_patches", "Fruit Patches", "درختان میوه", "🍊", R.drawable.ic_item_apple),
 
     @SerializedName("greenhouse")
-    GREENHOUSE("greenhouse", "Greenhouse", "گلخانه", "🏡", R.drawable.ic_greenhouse),
+    GREENHOUSE("greenhouse", "Greenhouse", "گلخانه", "🏡", R.drawable.ic_item_grape),
 
     @SerializedName("crop_machine")
-    CROP_MACHINE("crop_machine", "Crop Machine", "ماشین برداشت مکانیزه", "⚙️", R.drawable.ic_crop),
+    CROP_MACHINE("crop_machine", "Crop Machine", "ماشین برداشت مکانیزه", "⚙️", R.drawable.ic_item_corn),
 
     @SerializedName("flowers")
     FLOWERS("flowers", "Flowers", "باغچه گل‌ها", "🌸", R.drawable.ic_cat_flowers),
 
     @SerializedName("beehives")
-    BEEHIVES("beehives", "Beehives", "کندوهای عسل", "🐝", R.drawable.ic_beehive),
+    BEEHIVES("beehives", "Beehives", "کندوهای عسل", "🐝", R.drawable.ic_item_honey),
 
     @SerializedName("resources")
-    RESOURCES("resources", "Resources", "منابع (چوب، سنگ، آهن، طلا، نفت)", "🪓", R.drawable.ic_tree),
+    RESOURCES("resources", "Resources", "منابع (چوب، سنگ، آهن، طلا، نفت)", "🪓", R.drawable.ic_item_tree),
 
     @SerializedName("lava_pits")
     LAVA_PITS("lava_pits", "Lava Pits", "حوضچه‌های لاوا", "🌋", R.drawable.ic_cat_lava_pit),
@@ -44,40 +44,40 @@ enum class TimerCategory(
     CRAB_TRAPS("crab_traps", "Crab Traps", "تله‌های خرچنگ", "🦀", R.drawable.ic_cat_crab),
 
     @SerializedName("animals")
-    ANIMALS("animals", "Animals", "حیوانات مزرعه", "🐔", R.drawable.ic_animal),
+    ANIMALS("animals", "Animals", "حیوانات مزرعه", "🐔", R.drawable.ic_item_chicken),
 
     @SerializedName("petting")
     PETTING("petting", "Petting", "نوازش حیوانات (Love)", "✋", R.drawable.ic_item_petting),
 
     @SerializedName("fire_pit")
-    FIRE_PIT("fire_pit", "Fire Pit", "آتشگاه (Fire Pit)", "🔥", R.drawable.ic_item_mashed_potato),
+    FIRE_PIT("fire_pit", "Fire Pit", "آتشگاه (Fire Pit)", "🔥", R.drawable.ic_cat_fire_pit),
 
     @SerializedName("bakery")
-    BAKERY("bakery", "Bakery", "نانوایی (Bakery)", "🥧", R.drawable.ic_item_apple_pie),
+    BAKERY("bakery", "Bakery", "نانوایی (Bakery)", "🥧", R.drawable.ic_cat_bakery),
 
     @SerializedName("deli")
-    DELI("deli", "Deli", "اغذیه / دلی (Deli)", "🥗", R.drawable.ic_item_club_sandwich),
+    DELI("deli", "Deli", "اغذیه / دلی (Deli)", "🥗", R.drawable.ic_cat_deli),
 
     @SerializedName("smoothie_shack")
-    SMOOTHIE_SHACK("smoothie_shack", "Smoothie Shack", "اسموتی شَک", "🥤", R.drawable.ic_item_carrot_juice),
+    SMOOTHIE_SHACK("smoothie_shack", "Smoothie Shack", "اسموتی شَک", "🥤", R.drawable.ic_cat_smoothie),
 
     @SerializedName("kitchen")
-    KITCHEN("kitchen", "Kitchen", "آشپزخانه بزرگ (Kitchen)", "🍳", R.drawable.ic_item_pizza),
+    KITCHEN("kitchen", "Kitchen", "آشپزخانه بزرگ (Kitchen)", "🍳", R.drawable.ic_cat_kitchen),
 
     @SerializedName("fish_market")
-    FISH_MARKET("fish_market", "Fish Market", "بازار ماهی (Fish Market)", "🐟", R.drawable.ic_item_fish_and_chips),
+    FISH_MARKET("fish_market", "Fish Market", "بازار ماهی (Fish Market)", "🐟", R.drawable.ic_cat_fish_market),
 
     @SerializedName("composters")
-    COMPOSTERS("composters", "Composters", "کمپوست‌سازها", "🪱", R.drawable.ic_compost),
+    COMPOSTERS("composters", "Composters", "کمپوست‌سازها", "🪱", R.drawable.ic_item_sprout_mix),
 
     @SerializedName("cave")
-    CAVE("cave", "Cave", "غار قارچ (Cave)", "⛏️", R.drawable.ic_item_iron),
+    CAVE("cave", "Cave", "غار قارچ (Cave)", "⛏️", R.drawable.ic_cat_mushroom),
 
     @SerializedName("aging_rack")
     AGING_RACK("aging_rack", "Aging Rack", "قفسه کهنه‌سازی", "🧀", R.drawable.ic_cat_aging_rack),
 
     @SerializedName("fermentation_rack")
-    FERMENTATION_RACK("fermentation_rack", "Fermentation Rack", "قفسه تخمیر", "🫙", R.drawable.ic_item_club_sandwich),
+    FERMENTATION_RACK("fermentation_rack", "Fermentation Rack", "قفسه تخمیر", "🫙", R.drawable.ic_item_fermented_carrots),
 
     @SerializedName("spice_rack")
     SPICE_RACK("spice_rack", "Spice Rack", "قفسه ادویه‌جات", "🌶️", R.drawable.ic_cat_spice),
@@ -86,19 +86,19 @@ enum class TimerCategory(
     CRAFTING_BOX("crafting_box", "Crafting Box", "جعبه ساخت ابزار", "📦", R.drawable.ic_cat_crafting_box),
 
     @SerializedName("love_island")
-    LOVE_ISLAND("love_island", "Love Island", "جزیره شناور (Love Island)", "❤️", R.drawable.ic_app_sunflower),
+    LOVE_ISLAND("love_island", "Love Island", "جزیره شناور (Love Island)", "❤️", R.drawable.ic_item_sunflower),
 
     @SerializedName("bud_box")
     BUD_BOX("bud_box", "Bud Box", "جعبه جوانه (Bud Box)", "🎁", R.drawable.ic_cat_chest),
 
     @SerializedName("power_skills")
-    POWER_SKILLS("power_skills", "Power Skills", "مهارت‌های قدرتی", "⚡", R.drawable.ic_app_sunflower),
+    POWER_SKILLS("power_skills", "Power Skills", "مهارت‌های قدرتی", "⚡", R.drawable.ic_cat_power),
 
     @SerializedName("quests")
-    QUESTS("quests", "Quests", "ماموریت‌های روزانه", "📜", R.drawable.ic_app_sunflower),
+    QUESTS("quests", "Quests", "ماموریت‌های روزانه", "📜", R.drawable.ic_cat_chest),
 
     @SerializedName("village_projects")
-    VILLAGE_PROJECTS("village_projects", "Village Projects", "پروژه‌های روستا", "🏛️", R.drawable.ic_tree),
+    VILLAGE_PROJECTS("village_projects", "Village Projects", "پروژه‌های روستا", "🏛️", R.drawable.ic_cat_bed),
 
     @SerializedName("other")
     OTHER("other", "Other", "سایر موارد", "⏳", R.drawable.ic_app_sunflower);
@@ -284,15 +284,15 @@ fun resolveItemIcon(title: String, category: TimerCategory): Int? {
         lower.contains("lava") || category == TimerCategory.LAVA_PITS -> R.drawable.ic_cat_lava_pit
 
         // Composters
-        lower.contains("sprout mix") -> R.drawable.ic_item_sprout_mix
-        lower.contains("fruitful blend") -> R.drawable.ic_item_fruitful_blend
-        lower.contains("rapid root") -> R.drawable.ic_item_rapid_root
+        lower.contains("sprout mix") || lower.contains("compost bin") -> R.drawable.ic_item_sprout_mix
+        lower.contains("fruitful blend") || lower.contains("turbo composter") -> R.drawable.ic_item_fruitful_blend
+        lower.contains("rapid root") || lower.contains("premium composter") -> R.drawable.ic_item_rapid_root
         lower.contains("wormery") -> R.drawable.ic_item_wormery
-        lower.contains("compost") -> R.drawable.ic_compost
+        lower.contains("compost") -> R.drawable.ic_item_sprout_mix
 
         // Animals & Feeds
         lower.contains("pet") || category == TimerCategory.PETTING -> R.drawable.ic_item_petting
-        lower.contains("chicken") || lower.contains("egg") && !lower.contains("boiled") && !lower.contains("cake") -> R.drawable.ic_animal
+        lower.contains("chicken") || (lower.contains("egg") && !lower.contains("boiled") && !lower.contains("cake") && !lower.contains("plant")) || category == TimerCategory.ANIMALS -> R.drawable.ic_item_chicken
         lower.contains("hay") -> R.drawable.ic_item_hay
         lower.contains("kernel") -> R.drawable.ic_item_kernel_blend
         lower.contains("barn delight") -> R.drawable.ic_item_barn_delight

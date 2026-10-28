@@ -549,7 +549,17 @@ object SflTimerEngine {
                 val readyAt = producing.getSafeLong("readyAt") ?: continue
                 val startedAt = producing.getSafeLong("startedAt") ?: (readyAt - 4 * 3600_000L)
                 val dur = (readyAt - startedAt).coerceAtLeast(60_000L)
-                out.add(RawTimer(TimerCategory.COMPOSTERS, cName, readyAt, dur, "🪱"))
+
+                // Exact fertilizer produced by composter type
+                val itemsObj = producing.getAsJsonObjectSafe("items")
+                val producedItem = itemsObj?.keySet()?.firstOrNull() ?: when (cName) {
+                    "Compost Bin" -> "Sprout Mix"
+                    "Turbo Composter" -> "Fruitful Blend"
+                    "Premium Composter" -> "Rapid Root"
+                    else -> cName
+                }
+
+                out.add(RawTimer(TimerCategory.COMPOSTERS, producedItem, readyAt, dur, "🪱"))
             }
         }
     }

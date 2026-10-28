@@ -3,6 +3,7 @@ package com.sfl.notifapp.ui
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -19,7 +20,7 @@ class CategorySettingsAdapter(
     private val categories = SFL_OVERVIEW_CATEGORIES
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvEmoji: TextView = view.findViewById(R.id.tvCategoryEmoji)
+        val ivIcon: ImageView = view.findViewById(R.id.ivCategoryIcon)
         val tvName: TextView = view.findViewById(R.id.tvCategoryName)
         val tvSubtitle: TextView = view.findViewById(R.id.tvCategorySubtitle)
         val switchCategory: MaterialSwitch = view.findViewById(R.id.switchCategory)
@@ -33,7 +34,7 @@ class CategorySettingsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val category = categories[position]
-        holder.tvEmoji.text = category.emoji
+        holder.ivIcon.setImageResource(category.iconResId)
         holder.tvName.text = category.displayName
         holder.tvSubtitle.text = category.faName
 
