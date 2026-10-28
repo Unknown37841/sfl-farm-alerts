@@ -18,6 +18,7 @@ import com.sfl.notifapp.data.model.SFL_OVERVIEW_CATEGORIES
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.BottomSheetSettingsBinding
 import com.sfl.notifapp.receiver.AlarmScheduler
+import com.sfl.notifapp.util.BackgroundPermissionHelper
 
 class SettingsBottomSheet(
     private val onFarmIdChanged: (String) -> Unit,
@@ -97,9 +98,21 @@ class SettingsBottomSheet(
             Toast.makeText(context, "All categories disabled", Toast.LENGTH_SHORT).show()
         }
 
-        // 5. Battery Optimization Whitelist Button
+        // 5. Background & Battery Optimization Buttons
+        binding.btnBackgroundGuide.setOnClickListener {
+            BackgroundPermissionHelper.showBackgroundGuideDialog(requireContext())
+        }
+
         binding.btnBatteryOptimization.setOnClickListener {
-            requestIgnoreBatteryOptimization(context)
+            BackgroundPermissionHelper.requestIgnoreBatteryOptimization(requireContext())
+        }
+
+        binding.btnExactAlarm.setOnClickListener {
+            BackgroundPermissionHelper.openExactAlarmSettings(requireContext())
+        }
+
+        binding.btnAutostartSettings.setOnClickListener {
+            BackgroundPermissionHelper.openAutostartSettings(requireContext())
         }
 
         // 6. Test Notification Button
@@ -129,27 +142,6 @@ class SettingsBottomSheet(
         if (prefs.isNotificationsEnabled) {
             val cached = prefs.getCachedTimers()
             AlarmScheduler.scheduleTimers(context, cached)
-        }
-    }
-
-    private fun requestIgnoreBatteryOptimization(context: Context) {
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        val packageName = context.packageName
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && powerManager != null) {
-            if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-                try {
-                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                        data = Uri.parse("package:$packageName")
-                    }
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                    startActivity(intent)
-                }
-            } else {
-                Toast.makeText(context, "Battery saving is already unrestricted!", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 

@@ -10,13 +10,22 @@ import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.sfl.notifapp.R
 import com.sfl.notifapp.ui.MainActivity
+import com.sfl.notifapp.worker.FarmSyncWorker
+import java.util.concurrent.TimeUnit
 
 class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
+        private const val TAG = "AlarmReceiver"
         const val CHANNEL_ID = "sfl_farm_alerts_channel"
         const val CHANNEL_NAME = "Sunflower Land Farm Alerts"
         const val EXTRA_TIMER_ID = "extra_timer_id"
@@ -41,10 +50,36 @@ class AlarmReceiver : BroadcastReceiver() {
             val timerId = intent.getStringExtra(EXTRA_TIMER_ID) ?: System.currentTimeMillis().toString()
 
             showNotification(context, title, body, farmId, timerId.hashCode())
+
+            // Auto-schedule background farm sync after 5 minutes so when the user harvests
+            // and replants, the app fetches new farm timers automatically without opening the app!
+            schedulePostAlarmSync(context)
         } finally {
             if (wakeLock?.isHeld == true) {
                 wakeLock.release()
             }
+        }
+    }
+
+    private fun schedulePostAlarmSync(context: Context) {
+        try {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val postSyncWork = OneTimeWorkRequestBuilder<FarmSyncWorker>()
+                .setInitialDelay(5, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "sfl_post_alarm_sync",
+                ExistingWorkPolicy.REPLACE,
+                postSyncWork
+            )
+            Log.i(TAG, "Enqueued post-alarm auto-sync (5 min delay).")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to enqueue post-alarm sync: ${e.message}")
         }
     }
 

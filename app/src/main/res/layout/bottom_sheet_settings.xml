@@ -200,16 +200,89 @@
             android:layout_marginVertical="16dp"
             android:background="@color/border_subtle" />
 
-        <!-- Battery Optimization -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBatteryOptimization"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+        <!-- Background & Battery Settings Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Background &amp; Auto-Sync Reliability"
+            android:textColor="@color/sunflower_yellow"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Ensure alerts fire on time even if app is closed or phone is locked"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🔋 Check Battery Optimization"
-            android:textColor="@color/text_primary"
-            app:cornerRadius="10dp"
-            app:strokeColor="@color/border_subtle" />
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
+
+            <!-- Guide Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBackgroundGuide"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#2D2817"
+                android:text="📖 Step-by-Step Guide (Xiaomi / Samsung)"
+                android:textColor="@color/sunflower_yellow"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/sunflower_amber_dark"
+                app:strokeWidth="1dp" />
+
+            <!-- Two buttons side-by-side -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBatteryOptimization"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:text="🔋 Battery: Unrestricted"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:cornerRadius="10dp"
+                    app:strokeColor="@color/border_subtle" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExactAlarm"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:text="⏰ Exact Alarms"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    app:cornerRadius="10dp"
+                    app:strokeColor="@color/border_subtle" />
+            </LinearLayout>
+
+            <!-- Autostart / App Info Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAutostartSettings"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="🚀 App Info / Autostart Settings"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/border_subtle" />
+        </LinearLayout>
 
         <!-- Test Notification -->
         <com.google.android.material.button.MaterialButton

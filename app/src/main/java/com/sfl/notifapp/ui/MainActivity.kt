@@ -25,6 +25,7 @@ import com.sfl.notifapp.data.model.TimerCategory
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.ActivityMainBinding
 import com.sfl.notifapp.receiver.AlarmScheduler
+import com.sfl.notifapp.util.BackgroundPermissionHelper
 import com.sfl.notifapp.worker.FarmSyncWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -161,6 +162,14 @@ class MainActivity : AppCompatActivity() {
                     }
                     startActivity(intent)
                 } catch (_: Exception) {}
+            }
+        }
+
+        // Battery optimization exemption check
+        if (!BackgroundPermissionHelper.isIgnoringBatteryOptimizations(this)) {
+            if (!prefs.hasSeenBatteryPrompt) {
+                prefs.hasSeenBatteryPrompt = true
+                BackgroundPermissionHelper.showBackgroundGuideDialog(this)
             }
         }
     }

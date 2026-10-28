@@ -20,7 +20,12 @@ class PreferencesManager(context: Context) {
         private const val KEY_CACHED_TIMERS = "pref_cached_timers"
         private const val KEY_AUTO_SYNC_MINS = "pref_auto_sync_mins"
         private const val KEY_SCHEDULED_ALARMS = "pref_scheduled_alarms"
+        private const val KEY_BATTERY_PROMPT_SEEN = "pref_battery_prompt_seen"
     }
+
+    var hasSeenBatteryPrompt: Boolean
+        get() = prefs.getBoolean(KEY_BATTERY_PROMPT_SEEN, false)
+        set(value) = prefs.edit().putBoolean(KEY_BATTERY_PROMPT_SEEN, value).apply()
 
     var farmId: String
         get() = prefs.getString(KEY_FARM_ID, "") ?: ""
