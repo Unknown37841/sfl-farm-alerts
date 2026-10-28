@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import com.sfl.notifapp.R
 import com.sfl.notifapp.data.model.FarmTimerItem
 import com.sfl.notifapp.data.storage.PreferencesManager
 
@@ -42,6 +43,7 @@ object AlarmScheduler {
                 putExtra(AlarmReceiver.EXTRA_TITLE, timer.title)
                 putExtra(AlarmReceiver.EXTRA_BODY, timer.body)
                 putExtra(AlarmReceiver.EXTRA_CATEGORY, timer.category.key)
+                putExtra(AlarmReceiver.EXTRA_ICON_RES_ID, timer.iconResId)
                 putExtra(AlarmReceiver.EXTRA_FARM_ID, prefs.farmId)
             }
 
@@ -110,6 +112,7 @@ object AlarmScheduler {
             putExtra(AlarmReceiver.EXTRA_TITLE, "Test Farm Notification")
             putExtra(AlarmReceiver.EXTRA_BODY, "Notifications are working 100% properly! Offline alarms active.")
             putExtra(AlarmReceiver.EXTRA_CATEGORY, "crops")
+            putExtra(AlarmReceiver.EXTRA_ICON_RES_ID, R.drawable.ic_crop)
             putExtra(AlarmReceiver.EXTRA_FARM_ID, PreferencesManager(context).farmId)
         }
 

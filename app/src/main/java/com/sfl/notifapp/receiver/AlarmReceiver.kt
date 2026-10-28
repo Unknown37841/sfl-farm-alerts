@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
@@ -18,6 +19,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.sfl.notifapp.R
+import com.sfl.notifapp.data.model.TimerCategory
+import com.sfl.notifapp.data.model.resolveItemIcon
 import com.sfl.notifapp.ui.MainActivity
 import com.sfl.notifapp.worker.FarmSyncWorker
 import java.util.concurrent.TimeUnit
@@ -33,6 +36,7 @@ class AlarmReceiver : BroadcastReceiver() {
         const val EXTRA_BODY = "extra_body"
         const val EXTRA_CATEGORY = "extra_category"
         const val EXTRA_FARM_ID = "extra_farm_id"
+        const val EXTRA_ICON_RES_ID = "extra_icon_res_id"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -46,10 +50,12 @@ class AlarmReceiver : BroadcastReceiver() {
         try {
             val title = intent.getStringExtra(EXTRA_TITLE) ?: "Sunflower Land"
             val body = intent.getStringExtra(EXTRA_BODY) ?: "Items are ready to collect!"
+            val categoryKey = intent.getStringExtra(EXTRA_CATEGORY) ?: ""
+            val iconResId = intent.getIntExtra(EXTRA_ICON_RES_ID, 0)
             val farmId = intent.getStringExtra(EXTRA_FARM_ID) ?: ""
             val timerId = intent.getStringExtra(EXTRA_TIMER_ID) ?: System.currentTimeMillis().toString()
 
-            showNotification(context, title, body, farmId, timerId.hashCode())
+            showNotification(context, title, body, farmId, timerId.hashCode(), categoryKey, iconResId)
 
             // Auto-schedule background farm sync after 5 minutes so when the user harvests
             // and replants, the app fetches new farm timers automatically without opening the app!
@@ -88,7 +94,9 @@ class AlarmReceiver : BroadcastReceiver() {
         title: String,
         body: String,
         farmId: String,
-        notificationId: Int
+        notificationId: Int,
+        categoryKey: String = "",
+        explicitIconResId: Int = 0
     ) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -129,7 +137,21 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val fullTitle = if (farmId.isNotBlank()) "🌻 Farm #$farmId · $title" else "🌻 $title"
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        // Resolve specific icon (Wood -> Tree, Crops, Mining, etc.)
+        val targetIconRes: Int = if (explicitIconResId != 0) {
+            explicitIconResId
+        } else {
+            val category = TimerCategory.fromKey(categoryKey)
+            resolveItemIcon(title, category) ?: category.iconResId
+        }
+
+        val largeIconBitmap = try {
+            BitmapFactory.decodeResource(context.resources, targetIconRes)
+        } catch (e: Exception) {
+            null
+        }
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_sunflower)
             .setContentTitle(fullTitle)
             .setContentText(body)
@@ -139,8 +161,12 @@ class AlarmReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(pendingIntent)
-            .build()
 
+        if (largeIconBitmap != null) {
+            builder.setLargeIcon(largeIconBitmap)
+        }
+
+        val notification = builder.build()
         notificationManager.notify(notificationId, notification)
     }
 }

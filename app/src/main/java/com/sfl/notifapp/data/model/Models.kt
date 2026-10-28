@@ -272,12 +272,14 @@ fun resolveItemIcon(title: String, category: TimerCategory): Int? {
         lower.contains("lunalist") -> R.drawable.ic_flower_lunalist
 
         // Resources
-        lower.contains("honey") || category == TimerCategory.BEEHIVES -> R.drawable.ic_item_honey
-        lower.contains("oil") -> R.drawable.ic_item_oil
+        lower.contains("tree") || lower.contains("wood") -> R.drawable.ic_item_tree
+        lower.contains("stone") && !lower.contains("sunstone") && !lower.contains("crimstone") -> R.drawable.ic_item_stone
         lower.contains("iron") -> R.drawable.ic_item_iron
         lower.contains("gold") -> R.drawable.ic_item_gold
         lower.contains("crimstone") -> R.drawable.ic_item_crimstone
         lower.contains("sunstone") -> R.drawable.ic_item_sunstone
+        lower.contains("oil") -> R.drawable.ic_item_oil
+        lower.contains("honey") || category == TimerCategory.BEEHIVES -> R.drawable.ic_item_honey
         lower.contains("salt") || category == TimerCategory.SALT -> R.drawable.ic_item_salt
         lower.contains("lava") || category == TimerCategory.LAVA_PITS -> R.drawable.ic_cat_lava_pit
 
@@ -290,7 +292,7 @@ fun resolveItemIcon(title: String, category: TimerCategory): Int? {
 
         // Animals & Feeds
         lower.contains("pet") || category == TimerCategory.PETTING -> R.drawable.ic_item_petting
-        lower.contains("chicken") || lower.contains("egg") -> R.drawable.ic_animal
+        lower.contains("chicken") || lower.contains("egg") && !lower.contains("boiled") && !lower.contains("cake") -> R.drawable.ic_animal
         lower.contains("hay") -> R.drawable.ic_item_hay
         lower.contains("kernel") -> R.drawable.ic_item_kernel_blend
         lower.contains("barn delight") -> R.drawable.ic_item_barn_delight
@@ -300,18 +302,64 @@ fun resolveItemIcon(title: String, category: TimerCategory): Int? {
         // Crafting
         lower.contains("crafting") || category == TimerCategory.CRAFTING_BOX -> R.drawable.ic_cat_crafting_box
 
+        // Cakes (Checked before general crops so e.g. "Eggplant Cake" matches Cake, not Crop)
+        lower.contains("eggplant cake") -> R.drawable.ic_item_eggplant_cake
+        lower.contains("sunflower cake") -> R.drawable.ic_item_sunflower_cake
+        lower.contains("potato cake") -> R.drawable.ic_item_potato_cake
+        lower.contains("pumpkin cake") -> R.drawable.ic_item_pumpkin_cake
+        lower.contains("carrot cake") -> R.drawable.ic_item_carrot_cake
+        lower.contains("cabbage cake") -> R.drawable.ic_item_cabbage_cake
+        lower.contains("beetroot cake") -> R.drawable.ic_item_beetroot_cake
+        lower.contains("cauliflower cake") -> R.drawable.ic_item_cauliflower_cake
+        lower.contains("parsnip cake") -> R.drawable.ic_item_parsnip_cake
+        lower.contains("radish cake") -> R.drawable.ic_item_radish_cake
+        lower.contains("wheat cake") -> R.drawable.ic_item_wheat_cake
+        lower.contains("honey cake") -> R.drawable.ic_item_honey_cake
+        lower.contains("orange cake") -> R.drawable.ic_item_orange_cake
+        lower.contains("pirate cake") -> R.drawable.ic_item_pirate_cake
+        lower.contains("cake") -> R.drawable.ic_item_sunflower_cake
+
+        // Crops (Wheat, Sunflower, Potato, etc.)
+        lower.contains("wheat") -> R.drawable.ic_item_wheat
+        lower.contains("sunflower") -> R.drawable.ic_item_sunflower
+        lower.contains("potato") && !lower.contains("mashed") -> R.drawable.ic_item_potato
+        lower.contains("pumpkin") && !lower.contains("soup") -> R.drawable.ic_item_pumpkin
+        lower.contains("carrot") && !lower.contains("juice") -> R.drawable.ic_item_carrot
+        lower.contains("cabbage") -> R.drawable.ic_item_cabbage
+        lower.contains("beetroot") && !lower.contains("blaze") -> R.drawable.ic_item_beetroot
+        lower.contains("cauliflower") && !lower.contains("burger") -> R.drawable.ic_item_cauliflower
+        lower.contains("parsnip") -> R.drawable.ic_item_parsnip
+        lower.contains("eggplant") -> R.drawable.ic_item_eggplant
+        lower.contains("corn") && !lower.contains("bread") -> R.drawable.ic_item_corn
+        lower.contains("radish") && !lower.contains("pie") -> R.drawable.ic_item_radish
+        lower.contains("kale") -> R.drawable.ic_item_kale
+        lower.contains("soybean") -> R.drawable.ic_item_soybean
+
         // Food & Cooking
         lower.contains("apple pie") -> R.drawable.ic_item_apple_pie
+        lower.contains("apple juice") -> R.drawable.ic_item_apple_juice
+        lower.contains("banana blast") -> R.drawable.ic_item_banana_blast
+        lower.contains("beetroot blaze") -> R.drawable.ic_item_beetroot_blaze
         lower.contains("carrot juice") -> R.drawable.ic_item_carrot_juice
         lower.contains("mashed potato") -> R.drawable.ic_item_mashed_potato
         lower.contains("pumpkin soup") -> R.drawable.ic_item_pumpkin_soup
         lower.contains("boiled egg") -> R.drawable.ic_item_boiled_eggs
         lower.contains("pancake") -> R.drawable.ic_item_pancakes
-        lower.contains("sunflower cake") -> R.drawable.ic_item_sunflower_cake
         lower.contains("pizza") -> R.drawable.ic_item_pizza
         lower.contains("club sandwich") || lower.contains("sandwich") -> R.drawable.ic_item_club_sandwich
         lower.contains("fish and chips") -> R.drawable.ic_item_fish_and_chips
         lower.contains("corn bread") -> R.drawable.ic_item_corn_bread
+        lower.contains("chowder") -> R.drawable.ic_item_chowder
+        lower.contains("popcorn") -> R.drawable.ic_item_popcorn
+        lower.contains("fancy fries") -> R.drawable.ic_item_fancy_fries
+        lower.contains("roast veggies") -> R.drawable.ic_item_roast_veggies
+        lower.contains("fruit salad") -> R.drawable.ic_item_fruit_salad
+        lower.contains("bumpkin broth") -> R.drawable.ic_item_bumpkin_broth
+        lower.contains("bumpkin roast") -> R.drawable.ic_item_bumpkin_roast
+        lower.contains("bumpkin salad") -> R.drawable.ic_item_bumpkin_salad
+        lower.contains("cauliflower burger") -> R.drawable.ic_item_cauliflower_burger
+        lower.contains("goblin") -> R.drawable.ic_item_goblin_brunch
+        lower.contains("mushroom soup") -> R.drawable.ic_item_mushroom_soup
 
         else -> null
     }
