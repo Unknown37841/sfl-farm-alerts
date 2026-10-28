@@ -1,12 +1,13 @@
 package com.sfl.notifapp.ui
 
 import android.Manifest
-import android.app.AlarmManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.View
 import android.widget.Toast
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.chip.Chip
 import com.sfl.notifapp.R
 import com.sfl.notifapp.data.api.SflApiClient
 import com.sfl.notifapp.data.engine.SflTimerEngine
@@ -23,10 +25,10 @@ import com.sfl.notifapp.data.model.TimerCategory
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.ActivityMainBinding
 import com.sfl.notifapp.receiver.AlarmScheduler
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import com.sfl.notifapp.worker.FarmSyncWorker
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -35,22 +37,29 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefs: PreferencesManager
+    private lateinit var timerAdapter: TimerAdapter
     private val apiClient = SflApiClient()
-    private val adapter = TimerAdapter()
 
     private var allTimers: List<FarmTimerItem> = emptyList()
     private var selectedCategory: TimerCategory? = null
-    private var countdownJob: Job? = null
-    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+    // Handler for periodic 1-second countdown ticker
+    private val tickerHandler = Handler(Looper.getMainLooper())
+    private val tickerRunnable = object : Runnable {
+        override fun run() {
+            timerAdapter.notifyDataSetChanged()
+            updateOverviewCounters()
+            tickerHandler.postDelayed(this, 1000L)
+        }
+    }
 
     private val requestNotificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (!isGranted) {
-                Toast.makeText(
-                    this,
-                    "Notification permission denied. Alerts may not show.",
-                    Toast.LENGTH_LONG
-                ).show()
+            if (isGranted) {
+                Toast.makeText(this, "Notifications enabled", Toast.LENGTH_SHORT).show()
+                FarmSyncWorker.schedulePeriodicSync(this)
+            } else {
+                Toast.makeText(this, "Notification permission required for alerts", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -61,21 +70,77 @@ class MainActivity : AppCompatActivity() {
 
         prefs = PreferencesManager(this)
 
-        checkPermissions()
         setupUI()
-        loadCachedData()
-        startCountdownTicker()
+        setupRecyclerView()
+        checkPermissions()
 
-        // Fetch fresh state immediately if farmId is configured
-        if (prefs.farmId.isNotBlank()) {
+        // Load cached timers immediately for offline instant start
+        loadCachedData()
+
+        // Background worker periodic sync registration
+        FarmSyncWorker.schedulePeriodicSync(this)
+
+        // Perform initial network sync
+        syncFarm(showLoading = true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        tickerHandler.post(tickerRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        tickerHandler.removeCallbacks(tickerRunnable)
+    }
+
+    private fun setupUI() {
+        val farmId = prefs.farmId
+        binding.btnFarmId.text = "Farm #$farmId"
+
+        binding.btnFarmId.setOnClickListener {
+            openSettingsSheet()
+        }
+
+        binding.btnSettings.setOnClickListener {
+            openSettingsSheet()
+        }
+
+        binding.btnSyncNow.setOnClickListener {
             syncFarm(showLoading = true)
-        } else {
-            showFarmIdPromptDialog()
+        }
+
+        binding.swipeRefresh.setColorSchemeResources(R.color.sunflower_gold)
+        binding.swipeRefresh.setOnRefreshListener {
+            syncFarm(showLoading = false)
         }
     }
 
+    private fun setupRecyclerView() {
+        timerAdapter = TimerAdapter()
+        binding.recyclerTimers.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = timerAdapter
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun openSettingsSheet() {
+        val sheet = SettingsBottomSheet(
+            onFarmIdChanged = { newFarmId ->
+                binding.btnFarmId.text = "Farm #$newFarmId"
+                syncFarm(showLoading = true)
+            },
+            onSettingsDismissed = {
+                updateCategoryChips()
+                updateFilteredList()
+            }
+        )
+        sheet.show(supportFragmentManager, "SettingsBottomSheet")
+    }
+
     private fun checkPermissions() {
-        // Notification permission (Android 13+)
+        // Notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -86,188 +151,113 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Exact alarm permission (Android 12+)
+        // Exact Alarm permission check on Android 12+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            if (!alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(
-                    this,
-                    "Please allow Exact Alarms for 100% timely notifications.",
-                    Toast.LENGTH_LONG
-                ).show()
+            val alarmManager = getSystemService(android.app.AlarmManager::class.java)
+            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
                 try {
-                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
                     startActivity(intent)
-                } catch (e: Exception) {
-                    // Ignore if settings intent not available
-                }
+                } catch (_: Exception) {}
             }
         }
-    }
-
-    private fun setupUI() {
-        if (prefs.farmId.isBlank()) {
-            binding.btnFarmId.text = "Set Farm ID"
-        } else {
-            binding.btnFarmId.text = "Farm #${prefs.farmId}"
-        }
-
-        binding.btnFarmId.setOnClickListener {
-            showFarmIdPromptDialog()
-        }
-
-        binding.btnSettings.setOnClickListener {
-            openSettingsSheet()
-        }
-
-        binding.recyclerTimers.layoutManager = LinearLayoutManager(this)
-        binding.recyclerTimers.adapter = adapter
-
-        binding.swipeRefresh.setColorSchemeResources(R.color.sunflower_gold)
-        binding.swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.bg_card)
-        binding.swipeRefresh.setOnRefreshListener {
-            syncFarm(showLoading = false)
-        }
-
-        binding.btnSyncNow.setOnClickListener {
-            syncFarm(showLoading = true)
-        }
-
-        // Setup filter chips
-        binding.chipGroupFilters.setOnCheckedStateChangeListener { _, checkedIds ->
-            selectedCategory = when (checkedIds.firstOrNull()) {
-                R.id.chipCrops -> TimerCategory.CROPS
-                R.id.chipFruitTrees -> TimerCategory.FRUIT_TREES
-                R.id.chipTrees -> TimerCategory.TREES
-                R.id.chipMining -> TimerCategory.MINING
-                R.id.chipOil -> TimerCategory.OIL
-                R.id.chipComposters -> TimerCategory.COMPOSTERS
-                R.id.chipCooking -> TimerCategory.COOKING
-                R.id.chipAnimals -> TimerCategory.ANIMALS
-                R.id.chipGreenhouse -> TimerCategory.GREENHOUSE
-                R.id.chipBeehives -> TimerCategory.BEEHIVES
-                else -> null // All
-            }
-            updateFilteredList()
-        }
-    }
-
-    private fun showFarmIdPromptDialog() {
-        val input = android.widget.EditText(this).apply {
-            hint = "Enter Farm ID (e.g. 1234)"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setText(prefs.farmId)
-            setPadding(48, 36, 48, 36)
-            setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-            setHintTextColor(ContextCompat.getColor(context, R.color.text_muted))
-            background = ContextCompat.getDrawable(context, R.drawable.bg_input)
-        }
-
-        val container = android.widget.FrameLayout(this).apply {
-            setPadding(60, 20, 60, 20)
-            addView(input)
-        }
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("🌻 Sunflower Land Farm")
-            .setMessage("Please enter your SFL Farm ID to monitor crops, fruit trees, and timers:")
-            .setView(container)
-            .setPositiveButton("Save & Sync") { _, _ ->
-                val newId = input.text.toString().trim()
-                if (newId.isNotEmpty()) {
-                    prefs.farmId = newId
-                    binding.btnFarmId.text = "Farm #$newId"
-                    syncFarm(showLoading = true)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun openSettingsSheet() {
-        val sheet = SettingsBottomSheet { newFarmId ->
-            binding.btnFarmId.text = "Farm #$newFarmId"
-            syncFarm(showLoading = true)
-        }
-        sheet.show(supportFragmentManager, "SettingsBottomSheet")
     }
 
     private fun loadCachedData() {
-        allTimers = prefs.getCachedTimers()
-        updateOverviewCards()
-        updateFilteredList()
-
-        if (prefs.lastSyncTimestamp > 0L) {
-            val dateStr = timeFormat.format(Date(prefs.lastSyncTimestamp))
-            binding.tvSyncStatus.text = "Last synced: $dateStr"
+        val cached = prefs.getCachedTimers()
+        if (cached.isNotEmpty()) {
+            allTimers = cached.sortedBy { it.readyAt }
+            updateCategoryChips()
+            updateFilteredList()
+            updateOverviewCounters()
+            val lastSyncTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(prefs.lastSyncTime))
+            binding.tvSyncStatus.text = "Last synced: $lastSyncTime"
         } else {
-            binding.tvSyncStatus.text = "Not synced yet"
+            binding.tvSyncStatus.text = "Tap Sync to fetch farm data"
         }
     }
 
     private fun syncFarm(showLoading: Boolean) {
-        if (prefs.farmId.isBlank()) {
-            binding.swipeRefresh.isRefreshing = false
-            openSettingsSheet()
-            return
-        }
-
+        val farmId = prefs.farmId
         if (showLoading) {
-            binding.btnSyncNow.isEnabled = false
-            binding.btnSyncNow.text = "Syncing..."
-            binding.tvSyncStatus.text = "Fetching farm #${prefs.farmId}..."
+            binding.swipeRefresh.isRefreshing = true
         }
+        binding.tvSyncStatus.text = "Syncing Farm #$farmId..."
 
         lifecycleScope.launch {
-            val result = apiClient.fetchFarmJson(prefs.farmId)
+            try {
+                val fetchResult = apiClient.fetchFarmJson(farmId)
 
-            binding.swipeRefresh.isRefreshing = false
-            binding.btnSyncNow.isEnabled = true
-            binding.btnSyncNow.text = "Sync Farm"
+                if (fetchResult.isSuccess) {
+                    val farmData = fetchResult.getOrThrow()
+                    val timers = withContext(Dispatchers.Default) {
+                        SflTimerEngine.extractTimers(farmData)
+                    }
 
-            result.fold(
-                onSuccess = { rootJson ->
-                    try {
-                        allTimers = SflTimerEngine.extractTimers(rootJson)
-                        prefs.saveCachedTimers(allTimers)
-                        prefs.lastSyncTimestamp = System.currentTimeMillis()
+                    allTimers = timers.sortedBy { it.readyAt }
+                    prefs.saveCachedTimers(allTimers)
+                    prefs.lastSyncTime = System.currentTimeMillis()
 
-                        val nowStr = timeFormat.format(Date())
-                        binding.tvSyncStatus.text = "Live · Synced at $nowStr"
-
-                        // Schedule exact hardware alarms
+                    // Reschedule hardware RTC alarms for enabled categories
+                    if (prefs.isNotificationsEnabled) {
                         AlarmScheduler.scheduleTimers(this@MainActivity, allTimers)
+                    }
 
-                        updateOverviewCards()
-                        updateFilteredList()
-                    } catch (e: Exception) {
-                        binding.tvSyncStatus.text = "Error parsing farm: ${e.localizedMessage}"
-                    }
-                },
-                onFailure = { error ->
-                    val cachedCount = allTimers.size
-                    if (cachedCount > 0) {
-                        binding.tvSyncStatus.text = "Offline · Using cached ($cachedCount timers)"
-                    } else {
-                        binding.tvSyncStatus.text = "Sync failed: ${error.localizedMessage}"
-                    }
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Network issue. Showing offline data.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    updateCategoryChips()
+                    updateFilteredList()
+                    updateOverviewCounters()
+
+                    val syncTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+                    binding.tvSyncStatus.text = "Synced: $syncTime (${allTimers.size} timers)"
+                } else {
+                    val errorMsg = fetchResult.exceptionOrNull()?.message ?: "Unknown error"
+                    binding.tvSyncStatus.text = "Sync failed: $errorMsg"
+                    Toast.makeText(this@MainActivity, "Farm API: $errorMsg", Toast.LENGTH_SHORT).show()
                 }
-            )
+            } catch (e: Exception) {
+                binding.tvSyncStatus.text = "Connection error: ${e.localizedMessage ?: "timeout"}"
+                Toast.makeText(this@MainActivity, "Sync error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                binding.swipeRefresh.isRefreshing = false
+            }
         }
     }
 
-    private fun updateOverviewCards() {
-        val now = System.currentTimeMillis()
-        val readyCount = allTimers.count { it.readyAt <= now }
-        val upcomingCount = allTimers.count { it.readyAt > now }
+    private fun updateCategoryChips() {
+        val distinctCategories = allTimers.map { it.category }.distinctBy { it.key }.sortedBy { it.displayName }
 
-        binding.tvReadyCount.text = readyCount.toString()
-        binding.tvUpcomingCount.text = upcomingCount.toString()
+        binding.chipGroupFilters.removeAllViews()
+
+        // "All" Chip
+        val chipAll = Chip(this).apply {
+            id = View.generateViewId()
+            text = "All (${allTimers.size})"
+            isCheckable = true
+            isChecked = (selectedCategory == null)
+            setOnClickListener {
+                selectedCategory = null
+                updateFilteredList()
+            }
+        }
+        binding.chipGroupFilters.addView(chipAll)
+
+        // Dynamic chips for categories found on farm
+        for (category in distinctCategories) {
+            val count = allTimers.count { it.category == category }
+            val chip = Chip(this).apply {
+                id = View.generateViewId()
+                text = "${category.emoji} ${category.displayName} ($count)"
+                isCheckable = true
+                isChecked = (selectedCategory == category)
+                setOnClickListener {
+                    selectedCategory = category
+                    updateFilteredList()
+                }
+            }
+            binding.chipGroupFilters.addView(chip)
+        }
     }
 
     private fun updateFilteredList() {
@@ -277,33 +267,26 @@ class MainActivity : AppCompatActivity() {
             allTimers.filter { it.category == selectedCategory }
         }
 
-        adapter.submitList(filtered)
-
-        if (filtered.isEmpty()) {
-            binding.emptyView.visibility = View.VISIBLE
-            binding.recyclerTimers.visibility = View.GONE
-        } else {
-            binding.emptyView.visibility = View.GONE
-            binding.recyclerTimers.visibility = View.VISIBLE
-        }
+        timerAdapter.submitList(filtered)
+        val isEmpty = filtered.isEmpty()
+        binding.emptyView.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.recyclerTimers.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
-    private fun startCountdownTicker() {
-        countdownJob?.cancel()
-        countdownJob = lifecycleScope.launch {
-            while (isActive) {
-                delay(1000L)
-                // Refresh list item countdowns and overview count
-                if (allTimers.isNotEmpty()) {
-                    adapter.notifyDataSetChanged()
-                    updateOverviewCards()
-                }
+    private fun updateOverviewCounters() {
+        val now = System.currentTimeMillis()
+        var readyCount = 0
+        var upcomingCount = 0
+
+        for (timer in allTimers) {
+            if (timer.readyAt <= now) {
+                readyCount++
+            } else {
+                upcomingCount++
             }
         }
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        countdownJob?.cancel()
+        binding.tvReadyCount.text = readyCount.toString()
+        binding.tvUpcomingCount.text = upcomingCount.toString()
     }
 }

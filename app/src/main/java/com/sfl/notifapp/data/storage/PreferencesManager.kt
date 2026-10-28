@@ -38,9 +38,25 @@ class PreferencesManager(context: Context) {
         prefs.edit().putBoolean(KEY_CATEGORY_PREFIX + category.key, enabled).apply()
     }
 
+    fun setAllCategoriesEnabled(enabled: Boolean) {
+        val editor = prefs.edit()
+        TimerCategory.SFL_OVERVIEW_CATEGORIES.forEach { cat ->
+            editor.putBoolean(KEY_CATEGORY_PREFIX + cat.key, enabled)
+        }
+        editor.apply()
+    }
+
+    fun getEnabledCategoriesCount(): Int {
+        return TimerCategory.SFL_OVERVIEW_CATEGORIES.count { isCategoryEnabled(it) }
+    }
+
     var lastSyncTimestamp: Long
         get() = prefs.getLong(KEY_LAST_SYNC, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_SYNC, value).apply()
+
+    var lastSyncTime: Long
+        get() = lastSyncTimestamp
+        set(value) { lastSyncTimestamp = value }
 
     var autoSyncIntervalMinutes: Int
         get() = prefs.getInt(KEY_AUTO_SYNC_MINS, 15)

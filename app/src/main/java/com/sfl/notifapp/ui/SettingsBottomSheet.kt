@@ -1,6 +1,7 @@
 package com.sfl.notifapp.ui
 
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -11,19 +12,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.sfl.notifapp.data.model.TimerCategory
+import com.sfl.notifapp.data.model.SFL_OVERVIEW_CATEGORIES
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.BottomSheetSettingsBinding
 import com.sfl.notifapp.receiver.AlarmScheduler
 
 class SettingsBottomSheet(
-    private val onFarmIdChanged: (String) -> Unit
+    private val onFarmIdChanged: (String) -> Unit,
+    private val onSettingsDismissed: () -> Unit = {}
 ) : BottomSheetDialogFragment() {
 
     private var _binding: BottomSheetSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var prefs: PreferencesManager
+    private lateinit var categoryAdapter: CategorySettingsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,7 +43,7 @@ class SettingsBottomSheet(
         val context = requireContext()
         prefs = PreferencesManager(context)
 
-        // Setup Farm ID
+        // 1. Setup Farm ID
         binding.etFarmId.setText(prefs.farmId)
         binding.btnSaveFarmId.setOnClickListener {
             val newId = binding.etFarmId.text.toString().trim()
@@ -51,7 +55,7 @@ class SettingsBottomSheet(
             }
         }
 
-        // Master Switch
+        // 2. Master Switch
         binding.switchMasterNotifs.isChecked = prefs.isNotificationsEnabled
         binding.switchMasterNotifs.setOnCheckedChangeListener { _, isChecked ->
             prefs.isNotificationsEnabled = isChecked
@@ -59,25 +63,46 @@ class SettingsBottomSheet(
                 AlarmScheduler.cancelAllAlarms(context)
                 Toast.makeText(context, "All alarms disabled", Toast.LENGTH_SHORT).show()
             } else {
-                val cached = prefs.getCachedTimers()
-                AlarmScheduler.scheduleTimers(context, cached)
+                rescheduleAlarms()
                 Toast.makeText(context, "Alarms active", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Category Switches
-        setupCategorySwitch(binding.switchCrops, TimerCategory.CROPS)
-        setupCategorySwitch(binding.switchFruitTrees, TimerCategory.FRUIT_TREES)
-        setupCategorySwitch(binding.switchTrees, TimerCategory.TREES)
-        setupCategorySwitch(binding.switchMining, TimerCategory.MINING)
-        setupCategorySwitch(binding.switchOil, TimerCategory.OIL)
-        setupCategorySwitch(binding.switchComposters, TimerCategory.COMPOSTERS)
-        setupCategorySwitch(binding.switchCooking, TimerCategory.COOKING)
-        setupCategorySwitch(binding.switchAnimals, TimerCategory.ANIMALS)
-        setupCategorySwitch(binding.switchGreenhouse, TimerCategory.GREENHOUSE)
-        setupCategorySwitch(binding.switchBeehives, TimerCategory.BEEHIVES)
+        // 3. Setup 29 Categories RecyclerView
+        categoryAdapter = CategorySettingsAdapter(prefs) { _, _ ->
+            updateCountText()
+            rescheduleAlarms()
+        }
+        binding.rvCategories.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = categoryAdapter
+            isNestedScrollingEnabled = false
+        }
+        updateCountText()
 
-        // Test Notification Button
+        // 4. Select All / Deselect All
+        binding.btnSelectAllCategories.setOnClickListener {
+            prefs.setAllCategoriesEnabled(true)
+            categoryAdapter.notifyDataSetChanged()
+            updateCountText()
+            rescheduleAlarms()
+            Toast.makeText(context, "All 29 categories enabled", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnDeselectAllCategories.setOnClickListener {
+            prefs.setAllCategoriesEnabled(false)
+            categoryAdapter.notifyDataSetChanged()
+            updateCountText()
+            rescheduleAlarms()
+            Toast.makeText(context, "All categories disabled", Toast.LENGTH_SHORT).show()
+        }
+
+        // 5. Battery Optimization Whitelist Button
+        binding.btnBatteryOptimization.setOnClickListener {
+            requestIgnoreBatteryOptimization(context)
+        }
+
+        // 6. Test Notification Button
         binding.btnTestNotification.setOnClickListener {
             AlarmScheduler.scheduleTestAlarm(context, delaySeconds = 5)
             Toast.makeText(
@@ -87,21 +112,23 @@ class SettingsBottomSheet(
             ).show()
         }
 
-        // Battery Optimization Whitelist Button
-        binding.btnBatteryOptimization.setOnClickListener {
-            requestIgnoreBatteryOptimization(context)
+        // 7. Close / Apply Button
+        binding.btnCloseSettings.setOnClickListener {
+            dismiss()
         }
     }
 
-    private fun setupCategorySwitch(
-        switchView: com.google.android.material.materialswitch.MaterialSwitch,
-        category: TimerCategory
-    ) {
-        switchView.isChecked = prefs.isCategoryEnabled(category)
-        switchView.setOnCheckedChangeListener { _, isChecked ->
-            prefs.setCategoryEnabled(category, isChecked)
+    private fun updateCountText() {
+        val enabled = prefs.getEnabledCategoriesCount()
+        val total = SFL_OVERVIEW_CATEGORIES.size
+        binding.tvCategoriesCount.text = "$enabled/$total Active"
+    }
+
+    private fun rescheduleAlarms() {
+        val context = context ?: return
+        if (prefs.isNotificationsEnabled) {
             val cached = prefs.getCachedTimers()
-            AlarmScheduler.scheduleTimers(requireContext(), cached)
+            AlarmScheduler.scheduleTimers(context, cached)
         }
     }
 
@@ -124,6 +151,11 @@ class SettingsBottomSheet(
                 Toast.makeText(context, "Battery saving is already unrestricted!", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onSettingsDismissed()
     }
 
     override fun onDestroyView() {
