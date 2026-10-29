@@ -21,6 +21,9 @@ object AlarmScheduler {
             return
         }
 
+        // Cancel previously recorded scheduled alarms first so old/stale alarms don't remain
+        cancelAllAlarms(context)
+
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val now = System.currentTimeMillis()
         val scheduledIds = mutableSetOf<String>()
@@ -45,6 +48,7 @@ object AlarmScheduler {
                 putExtra(AlarmReceiver.EXTRA_CATEGORY, timer.category.key)
                 putExtra(AlarmReceiver.EXTRA_ICON_RES_ID, timer.iconResId)
                 putExtra(AlarmReceiver.EXTRA_FARM_ID, prefs.farmId)
+                putExtra(AlarmReceiver.EXTRA_READY_AT, timer.readyAt)
             }
 
             val requestCode = timer.id.hashCode()
@@ -96,6 +100,7 @@ object AlarmScheduler {
             )
             if (pendingIntent != null) {
                 alarmManager.cancel(pendingIntent)
+                pendingIntent.cancel()
             }
         }
 

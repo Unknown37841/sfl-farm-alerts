@@ -19,8 +19,10 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.sfl.notifapp.R
+import com.sfl.notifapp.data.model.FarmTimerItem
 import com.sfl.notifapp.data.model.TimerCategory
 import com.sfl.notifapp.data.model.resolveItemIcon
+import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.ui.MainActivity
 import com.sfl.notifapp.worker.FarmSyncWorker
 import java.util.concurrent.TimeUnit
@@ -37,6 +39,7 @@ class AlarmReceiver : BroadcastReceiver() {
         const val EXTRA_CATEGORY = "extra_category"
         const val EXTRA_FARM_ID = "extra_farm_id"
         const val EXTRA_ICON_RES_ID = "extra_icon_res_id"
+        const val EXTRA_READY_AT = "extra_ready_at"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -54,8 +57,37 @@ class AlarmReceiver : BroadcastReceiver() {
             val iconResId = intent.getIntExtra(EXTRA_ICON_RES_ID, 0)
             val farmId = intent.getStringExtra(EXTRA_FARM_ID) ?: ""
             val timerId = intent.getStringExtra(EXTRA_TIMER_ID) ?: System.currentTimeMillis().toString()
+            val readyAt = intent.getLongExtra(EXTRA_READY_AT, 0L)
+            val now = System.currentTimeMillis()
 
-            showNotification(context, title, body, farmId, timerId.hashCode(), categoryKey, iconResId)
+            val prefs = PreferencesManager(context)
+
+            // 1. If readyAt was passed and is still far in the future (>60s), ignore stale/premature alarm
+            if (readyAt > now + 60_000L) {
+                Log.w(TAG, "Ignoring premature alarm for '$title': readyAt is in the future ($readyAt > now $now)")
+                return
+            }
+
+            // 2. Cross-check against cached timers to protect against ghost alarms from older versions
+            val cachedTimers = prefs.getCachedTimers()
+            val matchingTimer = cachedTimers.firstOrNull { it.id == timerId || it.title == title }
+            if (matchingTimer != null && matchingTimer.readyAt > now + 60_000L) {
+                Log.w(TAG, "Ignoring stale ghost alarm for '$title': cached timer not ready yet (${matchingTimer.readyAt} > now $now)")
+                return
+            }
+
+            // 3. Debounce: if this item was already notified within the last 5 minutes, skip
+            val notifKey = "${farmId}_${categoryKey}_${title}"
+            val lastNotified = prefs.getLastNotifiedTime(notifKey)
+            if (now - lastNotified < 5 * 60_000L) {
+                Log.i(TAG, "Debouncing repeated notification for $notifKey")
+                return
+            }
+            prefs.saveLastNotifiedTime(notifKey, now)
+
+            // 4. Stable notification ID per item so it updates in-place rather than creating duplicate spam
+            val notifId = (farmId + categoryKey + title).hashCode()
+            showNotification(context, title, body, farmId, notifId, categoryKey, iconResId)
 
             // Auto-schedule background farm sync after 5 minutes so when the user harvests
             // and replants, the app fetches new farm timers automatically without opening the app!

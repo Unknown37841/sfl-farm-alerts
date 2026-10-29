@@ -89,4 +89,12 @@ class PreferencesManager(context: Context) {
     fun getScheduledAlarmIds(): Set<String> {
         return prefs.getStringSet(KEY_SCHEDULED_ALARMS, emptySet()) ?: emptySet()
     }
+
+    fun getLastNotifiedTime(key: String): Long {
+        return prefs.getLong("last_notif_$key", 0L)
+    }
+
+    fun saveLastNotifiedTime(key: String, timestamp: Long) {
+        prefs.edit().putLong("last_notif_$key", timestamp).apply()
+    }
 }

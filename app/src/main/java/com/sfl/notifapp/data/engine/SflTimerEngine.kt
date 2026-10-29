@@ -270,18 +270,70 @@ object SflTimerEngine {
     // 6. Beehives
     private fun extractBeehives(farm: JsonObject, out: MutableList<RawTimer>) {
         val hives = farm.getAsJsonObjectSafe("beehives") ?: return
-        for ((hiveId, elem) in hives.entrySet()) {
+        val targetMs = 24 * 3600_000L // 86,400,000 ms = full honey production time
+        val now = System.currentTimeMillis()
+
+        for ((_, elem) in hives.entrySet()) {
             if (!elem.isJsonObject) continue
             val hive = elem.asJsonObject
             val honey = hive.getAsJsonObjectSafe("honey")
-            val updatedAt = honey?.getSafeLong("updatedAt") ?: hive.getSafeLong("updatedAt")
-            val produced = honey?.getSafeLong("produced") ?: 0L
+            val updatedAt = honey?.getSafeLong("updatedAt") ?: hive.getSafeLong("updatedAt") ?: 0L
+            val produced = honey?.getSafeDouble("produced") ?: 0.0
 
-            if (updatedAt != null && updatedAt > 0L) {
-                val targetMs = 24 * 3600_000L
-                val remainingMs = (targetMs - produced).coerceAtLeast(0L)
-                val readyAt = System.currentTimeMillis() + remainingMs
-                out.add(RawTimer(TimerCategory.BEEHIVES, "Beehive #$hiveId", readyAt, targetMs, "🐝"))
+            val flowersArray = hive.getAsJsonArraySafe("flowers")
+            val flowers = mutableListOf<AttachedFlower>()
+            if (flowersArray != null) {
+                for (fElem in flowersArray) {
+                    if (!fElem.isJsonObject) continue
+                    val fObj = fElem.asJsonObject
+                    val attAt = fObj.getSafeLong("attachedAt") ?: 0L
+                    val attUntil = fObj.getSafeLong("attachedUntil") ?: 0L
+                    val rate = fObj.getSafeDouble("rate") ?: 1.0
+                    if (attUntil > attAt) {
+                        flowers.add(AttachedFlower(attAt, attUntil, rate))
+                    }
+                }
+            }
+            flowers.sortBy { it.attachedAt }
+
+            // 1. Calculate current honey produced up to now
+            var currentHoney = produced
+            for (flower in flowers) {
+                val start = maxOf(updatedAt, flower.attachedAt)
+                val end = minOf(now, flower.attachedUntil)
+                if (end > start) {
+                    currentHoney += (end - start) * flower.rate
+                }
+            }
+
+            // 2. Determine readyAt
+            if (currentHoney >= targetMs) {
+                // Honey is ready to collect now
+                val readyAt = if (updatedAt > 0L) updatedAt else (now - 1000L)
+                out.add(RawTimer(TimerCategory.BEEHIVES, "Beehive", readyAt, targetMs, "🐝"))
+            } else if (flowers.isNotEmpty()) {
+                // Project forward through attached flowers deterministically
+                var projHoney = produced
+                var finishAt: Long? = null
+
+                for (flower in flowers) {
+                    val start = maxOf(updatedAt, flower.attachedAt)
+                    val end = flower.attachedUntil
+                    if (end > start) {
+                        val gain = (end - start) * flower.rate
+                        if (projHoney + gain >= targetMs) {
+                            val needed = targetMs - projHoney
+                            val durationNeeded = (needed / flower.rate).toLong()
+                            finishAt = start + durationNeeded
+                            break
+                        }
+                        projHoney += gain
+                    }
+                }
+
+                if (finishAt != null) {
+                    out.add(RawTimer(TimerCategory.BEEHIVES, "Beehive", finishAt, targetMs, "🐝"))
+                }
             }
         }
     }
@@ -795,4 +847,16 @@ object SflTimerEngine {
             try { get(key).asLong } catch (e: Exception) { null }
         } else null
     }
+
+    private fun JsonObject.getSafeDouble(key: String): Double? {
+        return if (has(key) && !get(key).isJsonNull) {
+            try { get(key).asDouble } catch (e: Exception) { null }
+        } else null
+    }
+
+    private data class AttachedFlower(
+        val attachedAt: Long,
+        val attachedUntil: Long,
+        val rate: Double
+    )
 }
