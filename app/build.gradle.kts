@@ -11,8 +11,8 @@ android {
         applicationId = "com.sfl.notifapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 11
-        versionName = "1.5.5"
+        versionCode = 12
+        versionName = "1.5.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

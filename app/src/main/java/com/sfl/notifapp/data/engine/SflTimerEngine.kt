@@ -437,13 +437,13 @@ object SflTimerEngine {
     // 8. Lava Pits
     private fun extractLavaPits(farm: JsonObject, out: MutableList<RawTimer>) {
         val pits = farm.getAsJsonObjectSafe("lavaPits") ?: return
-        for ((id, elem) in pits.entrySet()) {
+        for ((_, elem) in pits.entrySet()) {
             if (!elem.isJsonObject) continue
             val pit = elem.asJsonObject
             val startedAt = pit.getSafeLong("startedAt") ?: continue
             val readyAt = pit.getSafeLong("readyAt") ?: (startedAt + DEFAULT_LAVA_PIT_MS)
             val dur = (readyAt - startedAt).coerceAtLeast(3600_000L)
-            out.add(RawTimer(TimerCategory.LAVA_PITS, "Lava Pit #$id", readyAt, dur, "🌋"))
+            out.add(RawTimer(TimerCategory.LAVA_PITS, "Lava Pit", readyAt, dur, "🌋"))
         }
     }
 
@@ -452,12 +452,12 @@ object SflTimerEngine {
         val saltFarm = farm.getAsJsonObjectSafe("saltFarm")
         val nodes = saltFarm?.getAsJsonObjectSafe("nodes") ?: farm.getAsJsonObjectSafe("saltNodes")
         if (nodes != null) {
-            for ((id, elem) in nodes.entrySet()) {
+            for ((_, elem) in nodes.entrySet()) {
                 if (!elem.isJsonObject) continue
                 val node = elem.asJsonObject
                 val nextChargeAt = node.getSafeLong("nextChargeAt")
                 if (nextChargeAt != null && nextChargeAt > 0L) {
-                    out.add(RawTimer(TimerCategory.SALT, "Salt Node #$id", nextChargeAt, DEFAULT_SALT_NODE_MS, "🧂"))
+                    out.add(RawTimer(TimerCategory.SALT, "Salt Node", nextChargeAt, DEFAULT_SALT_NODE_MS, "🧂"))
                 }
             }
         }
@@ -467,13 +467,13 @@ object SflTimerEngine {
     private fun extractCrabTraps(farm: JsonObject, out: MutableList<RawTimer>) {
         val traps = farm.getAsJsonObjectSafe("crabTraps")
         if (traps != null) {
-            for ((id, elem) in traps.entrySet()) {
+            for ((_, elem) in traps.entrySet()) {
                 if (!elem.isJsonObject) continue
                 val trap = elem.asJsonObject
                 val harvestedAt = trap.getSafeLong("harvestedAt") ?: trap.getSafeLong("placedAt") ?: continue
                 val dur = trap.getSafeLong("duration") ?: DEFAULT_CRAB_TRAP_MS
                 val readyAt = trap.getSafeLong("readyAt") ?: (harvestedAt + dur)
-                out.add(RawTimer(TimerCategory.CRAB_TRAPS, "Crab Trap #$id", readyAt, dur, "🦀"))
+                out.add(RawTimer(TimerCategory.CRAB_TRAPS, "Crab Trap", readyAt, dur, "🦀"))
             }
         }
     }
