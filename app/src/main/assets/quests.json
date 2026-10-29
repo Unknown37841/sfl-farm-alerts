@@ -1,0 +1,310 @@
+[
+  {
+    "id": "ancient-totem",
+    "title": "Ancient Totem",
+    "description": "While digging, you unearth a strange humming totem covered in runes. What will you do?",
+    "choices": "✋ Touch it.\n\n🙈 Bury it again.",
+    "outcomes": "You receive 100 Coins 🪙. (✋ Touch it.)\n\nYou receive 5 Stone 🪨. (🙈 Bury it again.)"
+  },
+  {
+    "id": "bard-s-visit",
+    "title": "Bard's Visit",
+    "description": "A traveling bard plays a lively tune and asks for a small gift to bless your harvest. How will you respond?",
+    "choices": "🎵 Give him mushrooms.\n\n🤐 Ignore him.",
+    "outcomes": "You receive 5 Wild Mushrooms 🍄 and 50 Coins 🪙. (🎵 Give him mushrooms.)\n\nYou receive 50 Coins 🪙. (🤐 Ignore him.)"
+  },
+  {
+    "id": "bert-s-portal",
+    "title": "Bert’s Portal",
+    "description": "Bert says a mushroom ring is a portal to another land. Try jumping in?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Gold 🪙. (🧙‍♂️ Step into the ring.)\n\nYou receive 3 Red Pansy 🌺. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (🔮 Back away slowly.)"
+  },
+  {
+    "id": "chase-the-rainbow",
+    "title": "Chase the Rainbow",
+    "description": "A dazzling rainbow arcs across Sunflower Land. It’s said treasures lie at its base. Will you chase it?",
+    "choices": "🏃 Chase it!\n\n🧑‍🌾 Ignore it.",
+    "outcomes": "You receive 10 Gems 💎. (🏃 Chase it!)\n\nYou receive 50 Coins. (🧑‍🌾 Ignore it.)"
+  },
+  {
+    "id": "chicken-race",
+    "title": "Chicken Race",
+    "description": "A cheeky chicken challenges you to a race around the farm. Villagers are watching!",
+    "choices": "🏃‍♂️ Race the chicken.\n\n🐥 Let it strut.",
+    "outcomes": "You receive 5 Axes 🪓 and 50 Coins 🪙. (🏃‍♂️ Race the chicken.)\n\nYou receive 5 kale 🥬. (🐥 Let it strut.)"
+  },
+  {
+    "id": "cornwell-s-curiosity",
+    "title": "Cornwell’s Curiosity",
+    "description": "What is Cornwell’s profession in Sunflower Land?",
+    "choices": "🧙 Wizard\n\n📖 Librarian\n\n🔨 Blacksmith",
+    "outcomes": "✅ Correct! Cornwell is the Kingdom’s wise Librarian. You earn 100 Coins 🪙 and 5 Gems 💎. (📖 Librarian)\n\n❌ Nope. That's someone else's job! No prize (⚒️ Blacksmith.)\n\n❌ Incorrect! Cornwell is not a wizard, he's a librarian. No Prize (🧙‍♂️ Wizard.)"
+  },
+  {
+    "id": "cornwell-s-riddle",
+    "title": "Cornwell’s Riddle",
+    "description": "Cornwell challenges you with a cryptic riddle tied to a hidden stash. Try to solve it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 10 Kale 🥬. (👨‍🌾 Investigate the answer.)\n\nYou receive 50 Coins 🌕. (📘 Close the riddle book.)\n\nYou receive 150 Coins 🪙. (🚶 Ignore it.)"
+  },
+  {
+    "id": "desert-rune",
+    "title": "Desert Rune",
+    "description": "A glowing rune was found in the desert. Touch it or report it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 10 Corn 🌽. (🔥 Touch the glowing rune.)\n\nYou receive 50 Coins 🪙. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (🏜️ Leave it undisturbed.)"
+  },
+  {
+    "id": "finley-s-fish",
+    "title": "Finley's Fish",
+    "description": "Finley saw a huge shadow in the ocean. Try to catch it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Stone 🪨. (🎣 Cast Finley's rod.)\n\nYou receive 50 Coins 🪙 (🐚 Sit by the shore instead.)\n\nYou receive 3 Purple Pansy 🟣. (🚶 Ignore it.)"
+  },
+  {
+    "id": "fox-theft",
+    "title": "Fox Theft",
+    "description": "A fox is spotted stealing berries from your farm. Quick thinking might save your harvest!",
+    "choices": "🦊 Shoo it away.\n\n🥬 Let it go.",
+    "outcomes": "You receive 5 kale. (🥬 Let it go.)\n\nYou receive 5 Mushrooms 🍄. (🦊 Shoo it away.)"
+  },
+  {
+    "id": "gambit-s-bet",
+    "title": "Gambit's Bet",
+    "description": "Gambit offers a risky game with high rewards. Do you play?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Wheat Seed. (🕵️ Start the scavenger hunt.)\n\nYou receive 50 Coins 🪙. (🎭 Decline the risky bet.)\n\nYou receive 50 Coins 🪙. (🚶 Ignore it.)"
+  },
+  {
+    "id": "ghostly-harvest",
+    "title": "Ghostly Harvest",
+    "description": "Strange crops have sprouted overnight, glowing under the moonlight. Investigate?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 10 Pumpkin 🎃. (🧩 Decode the crop symbol.)\n\nYou receive 50 Coins 🪙. (🌑 Step away from the glow.)\n\nYou receive 5 Iron ⛓️. (🚶 Ignore it.)"
+  },
+  {
+    "id": "goblin-dance-party",
+    "title": "Goblin Dance Party",
+    "description": "The Goblins have set up a wild dance party in the fields. Strange music fills the air. Join them?",
+    "choices": "💃 Join them.\n\n🕺 Stay away.",
+    "outcomes": "You receive 15 Love Charms 💝. (💃 Join them.)\n\nYou receive 5 Stone 🪨. (🚶 Stay away.)"
+  },
+  {
+    "id": "goblin-scheme",
+    "title": "Goblin Scheme",
+    "description": "A shady goblin whispers about a shortcut to wealth. Trust him?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Corn Seed 🌽. (💰 Enter the mountain lair). \n\nYou receive 50 Coins 🌕. (🚫 Ignore the goblin's tip.)\n\nYou receive 5 Wood 🪵. (🚶 Ignore it.)"
+  },
+  {
+    "id": "goblin-trade",
+    "title": "Goblin Trade",
+    "description": "A sneaky Goblin jingles a bag of shiny stones, offering a suspicious trade for your crops. Will you trust him?",
+    "choices": "🤝 Accept trade.\n\n🚶 Refuse.",
+    "outcomes": "You receive 50 Coins 🪙. (🚶 Refuse.)\n\nYou receive 5 Pickaxe ⛏️. (🤝 Accept trade.)"
+  },
+  {
+    "id": "goblin-upgrade",
+    "title": "Goblin Upgrade",
+    "description": "A shady Goblin offers to \"upgrade\" your tools. His grin is unsettling. Trust him?",
+    "choices": "🛠️ Agree.\n\n❌ Decline.",
+    "outcomes": "You receive 5 Rods 🎣 and 5 Pickaxes ⛏️. (🛠️ Agree.)\n\nYou receive 50 Coins 🪙. (❌ Decline.)"
+  },
+  {
+    "id": "golden-fish",
+    "title": "Golden Fish",
+    "description": "A Golden Fish is flopping by the river, its scales glistening in the sunlight. Legends say catching it brings great fortune. Will you take the risk?",
+    "choices": "🐠 Catch it!\n\n🦈 Let it go.",
+    "outcomes": "You receive 15 Gems 💎.(🐠 Catch it!)\n\nYou receive 50 Coins 🪙(🦈 Let it go.)"
+  },
+  {
+    "id": "grimbly-s-feast",
+    "title": "Grimbly's Feast",
+    "description": "Grimbly is preparing a Goblin feast but needs one last ingredient. Help him?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 7 Gems 💎. (🍄 Search behind the falls.)\n\nYou receive 100 Coins 🪙. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (🥣 Refuse the recipe.)"
+  },
+  {
+    "id": "help-old-cornwell",
+    "title": "Help Old Cornwell",
+    "description": "Wise Old Cornwell waves you over, arms full of freshly picked Kale. He looks exhausted and could use a hand. Will you help the old Bumpkin?",
+    "choices": "🧑‍🌾 Help him.\n\n🙈 Ignore him.",
+    "outcomes": "You receive 5 Kale 🥬 and 10 Love Charms 💘. (🧑‍🌾 Help him.)\n\nYou receive 50 Coins. (🙈 Ignore him.)"
+  },
+  {
+    "id": "jester-s-prank",
+    "title": "Jester’s Prank",
+    "description": "The Jester reveals his plan: he's going to replace Victoria's crown with a fake one during the royal procession. He says it's just a harmless prank, but you know Victoria doesn't have a sense of humor. He offers you a share of the reward if you help. Will you participate?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Gold 🪙. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (⚖️ Warn the queen)\n\nYou receive 10 Pumpkin 🎃. (👑Swap the crown!)"
+  },
+  {
+    "id": "lost-pirate-map",
+    "title": "Lost Pirate Map",
+    "description": "You stumble upon a torn pirate map buried in the sand. Will you follow it?",
+    "choices": "🗺️ Follow it.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 10 gems 💎. (🗺️ Follow it.)\n\nYou receive 50 coins 🪙. (🚶 Ignore it.)"
+  },
+  {
+    "id": "lost-scroll",
+    "title": "Lost Scroll",
+    "description": "Cornwell misplaced a scroll that could reveal ancient truths. Help find it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Celestine Seed 🌱. (🛠️ Enter the hidden room.)\n\nYou receive 3 Red Pansy 🌺. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (📚 Leave the library.)"
+  },
+  {
+    "id": "magic-storm",
+    "title": "Magic Storm",
+    "description": "A vibrant magic storm rolls across Sunflower Land. Will you brave it?",
+    "choices": "🌫️ Dance in the storm.\n\n🏠 Hide inside.",
+    "outcomes": "You receive 10 Axes 🪓. (🌫️ Dance in the storm.)\n\nYou receive 5 Wood 🪵. (🏠 Hide inside.)"
+  },
+  {
+    "id": "merchant-s-mystery-box",
+    "title": "Merchant’s Mystery Box",
+    "description": "A wandering merchant offers you a sealed mystery box. He promises great rewards inside. Will you buy it?",
+    "choices": "🎁 Buy the box.\n\n🚫 Decline.",
+    "outcomes": "You receive 5 Axes 🪓! (🎁 Buy the box.)\n\nYou receive 50 Coins 🪙. (🚫 Decline.)\n\nYou receive 5 Wood 🪵. (🚶 Ignore it.)"
+  },
+  {
+    "id": "miranda-s-song",
+    "title": "Miranda's Song",
+    "description": "Miranda found a seashell that sings. Listen to it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Carrot Seed 🥕. (🎵 Follow the music trial.)\n\nYou receive 50 Coins 🪙. (🚶 Ignore it.)\n\nYou receive 50 Coins 🌕. (🙉 Ignore the melody.)"
+  },
+  {
+    "id": "moonlight-crops",
+    "title": "Moonlight Crops",
+    "description": "Your crops glisten under the full moon. Old tales say moon-harvests bring unusual yields. What will you do?",
+    "choices": "🌾 Harvest them.\n\n🐑 Wait till morning.",
+    "outcomes": "You receive 50 Coins 🪙. (🐑 Wait till morning.)\n\nYou receive 5 Kale 🥬 and 10 Wood 🪵. (🌾 Harvest them.)"
+  },
+  {
+    "id": "mushroom-circle",
+    "title": "Mushroom Circle",
+    "description": "Overnight, a glowing circle of mushrooms has formed near your farm. Strange energies hum in the air. Dare to step inside?",
+    "choices": "🌀 Step inside.\n\n🛡️ Walk around it.",
+    "outcomes": "You receive 3 Wild Mushrooms 🍄. (🌀 Step inside.)\n\nYou receive 5 Wood . (🛡️ Walk around it.)"
+  },
+  {
+    "id": "mysterious-merchant",
+    "title": "Mysterious Merchant",
+    "description": "A cloaked figure appears at the edge of your farm, offering rare goods for an unusual price...",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 3 Kale Seeds 🥬✨. (📦 Select the glowing package.)\n\nYou receive 100 Coins 🪙 and 2 wood🪵. (🎁 Choose the wooden box.)\n\nYou receive 5 Wood 🪵. (🚶 Ignore it.)"
+  },
+  {
+    "id": "mystic-well",
+    "title": "Mystic Well",
+    "description": "A bubbling well behind the plaza is glowing. Drop something in?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Stone 🪨. (💎 Drop your treasured item.)\n\nYou receive 50 Coins 🪙. (✅ Investigate and keep your belongings.)\n\nYou receive 50 Coins 🪙. (🚶 Ignore it.)"
+  },
+  {
+    "id": "pete-s-fishing-challenge",
+    "title": "Pete’s Fishing Challenge",
+    "description": "Pete boasts about his fishing skills by the lake. He challenges you to a contest. Accept?",
+    "choices": "🎣 Compete!\n\n🧑‍🌾 Decline.",
+    "outcomes": "You receive 5 Rods 🎣. (🎣 Compete!)\n\nYou receive 50 Coins 🪙. (🧑‍🌾 Decline.)"
+  },
+  {
+    "id": "pete-s-parade",
+    "title": "Pete's Parade",
+    "description": "The plaza is setting up a parade, but Pete’s float is broken! Help him fix it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Rod 🎣. (🔍 Scour the dusty barn.)\n\nYou receive 50 Coins 🌕. (🚫 Leave the float unfinished.)\n\nYou receive 3 Yellow Pansy 🌼. (🚶 Ignore it.)"
+  },
+  {
+    "id": "plaza-whispers",
+    "title": "Plaza Whispers",
+    "description": "Betty says the plaza is whispering secrets at night. Investigate the sound?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 10 Beetroot 🥬. (🛠️ Uncover the fountain's secret.)\n\nYou receive 50 Coins 🌕. (🌃 Walk into the night.)\n\nYou receive 5 Egg 🥚. (🚶 Ignore it.)"
+  },
+  {
+    "id": "raven-s-secret",
+    "title": "Raven’s Secret",
+    "description": "Who is Raven secretly related to?",
+    "choices": "👸 Queen Victoria\n\n⚒️ The Blacksmith\n\n🧝 A Moonseeker",
+    "outcomes": "✅ Correct! Raven is secretly the Blacksmith’s daughter. You earn 100 Coins 🪙 and 5 Gems 💎. (⚒️ The Blacksmith)\n\n❌ Spooky, but incorrect! You receive 5 Love Charms 💘. (🧝 A Moonseeker)\n\n❌ Wrong guess! It’s not the Queen. 5 Love Charms 💘. (👸 Queen Victoria)"
+  },
+  {
+    "id": "raven-s-vision",
+    "title": "Raven's Vision",
+    "description": "Raven speaks of a vision involving a rare flower and a lunar event. Search for it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 8 Gems 💎. (🌕 Wait beneath the moonlight.)\n\nYou receive 3 Red Pansy 🌺. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (🏳️ Skip the lunar ritual.)"
+  },
+  {
+    "id": "sunken-bottle",
+    "title": "Sunken Bottle",
+    "description": "A mysterious bottle washed ashore. It holds an old, crumpled note. Open it?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Iron Pickaxe ⛏️. (🧭 Search the marked shoreline.)\n\nYou receive 100 Coins 🪙. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (📄 Crumple the soggy note.)"
+  },
+  {
+    "id": "timmy-s-trouble",
+    "title": "Timmy’s Trouble",
+    "description": "Timmy swears he saw a Goblin stealing honey. Investigate the scene?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Honey 🍯. (🐾 Follow the sticky trail.)\n\nYou receive 100 Coins 🪙. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (🐝 Leave the hive be.)"
+  },
+  {
+    "id": "treasure-dust",
+    "title": "Treasure Dust",
+    "description": "Old Salty is sneezing—says it's the scent of nearby treasure. Follow his nose?",
+    "choices": "✅ Investigate.\n\n🏃 Ignore it.",
+    "outcomes": "You receive 5 Pumpkin Seed 🎃. (🪣 Dig where he points.)\n\nYou receive 3 Yellow Pansy 🌼. (🚶 Ignore it.)\n\nYou receive 50 Coins 🪙. (🚫 Respect the boundaries.)"
+  },
+  {
+    "id": "treasure-scroll",
+    "title": "Treasure Scroll",
+    "description": "A crumpled scroll blows into your path, possibly leading to treasure. Will you read it?",
+    "choices": "📜 Read it.\n\n🔥 Burn it.",
+    "outcomes": "You receive 5 Pickaxes ⛏️. (📜 Read it.)\n\nYou receive 5 Wood 🪵. (🔥 Burn it)"
+  },
+  {
+    "id": "tywin-s-tax",
+    "title": "Tywin's Tax",
+    "description": "“All Bumpkins must pay a special crop tax!” shouts Tywin from the Kingdom gates. He demands payment... but something feels off.",
+    "choices": "📦 Pay the tax.\n\n🧑‍🌾 Tell Raven.",
+    "outcomes": "You receive 10 Kale 🥬. (🧨 Sabotage his supply crate.)\n\nYou receive 100 Coins 🪙. (😇 Do nothing.)\n\nYou receive 3 Gems 💎. (📦 Pay the tax.)"
+  },
+  {
+    "id": "victoria-s-command",
+    "title": "Victoria's Command",
+    "description": "Queen Victoria demands a tribute of rare flowers. Comply or resist?",
+    "choices": "✅ Investigate.\n\n🚶 Ignore it.",
+    "outcomes": "You receive 5 Iron ⛓️. (🪻 Sneak into the garden.)\n\nYou receive 50 Coins 🪙. (🫡 Bow out gracefully.)\n\nYou receive 10 Carrot 🥕. (🚶 Ignore it.)"
+  },
+  {
+    "id": "whispering-flowers",
+    "title": "Whispering Flowers",
+    "description": "Your sunflowers whisper secrets in the breeze. Lean in closer?",
+    "choices": "👂 Listen closely.\n\n🏃 Ignore them.",
+    "outcomes": "You receive 100 Coins 🪙. (👂 Listen closely.)\n\nYou receive 50 Coins 🪙. (🚶 Ignore them.)"
+  },
+  {
+    "id": "whispers-in-the-wind",
+    "title": "Whispers in the Wind",
+    "description": "A strange wind blows through the Plaza, carrying soft whispers that only you seem to hear. Something is calling...",
+    "choices": "🦻 Listen carefully.\n\n🔴 Block your ears.",
+    "outcomes": "You receive 5 Celestine Seed ✨. (🌳 Dig beneath the tree.)\n\nYou receive 5 Wood 🪵. (🔴 Block your ears.)\n\nYou receive 50 Coins 🪙. (🙉 Ignore the voices.)"
+  },
+  {
+    "id": "wild-creature",
+    "title": "Wild Creature",
+    "description": "Cornwell spots a wild creature near the woods. Dangerous—or valuable?",
+    "choices": "🧭 Investigate.\n\n🛡️ Stay safe.",
+    "outcomes": "You receive 5 Gems 💎. (🧭 Investigate.)\n\nYou receive 5 Stone 🪨. (🛡️ Stay safe.)"
+  },
+  {
+    "id": "wishing-well",
+    "title": "Wishing Well",
+    "description": "An old wishing well glows faintly under the stars. Toss a coin and make a wish?",
+    "choices": "🪙 Toss a coin.\n\n🚶 Walk past.",
+    "outcomes": "You receive 200 Coins 🪙. (🪙 Toss a coin.)\n\nYou receive 50 Coins 🪙. (🚶 Walk past.)"
+  }
+]

@@ -123,7 +123,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        timerAdapter = TimerAdapter()
+        timerAdapter = TimerAdapter { item ->
+            if (item.category == com.sfl.notifapp.data.model.TimerCategory.QUESTS) {
+                val questSheet = QuestDetailBottomSheet(item)
+                questSheet.show(supportFragmentManager, "QuestDetailBottomSheet")
+            }
+        }
         binding.recyclerTimers.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = timerAdapter

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sfl.notifapp.R
 import com.sfl.notifapp.data.model.SFL_OVERVIEW_CATEGORIES
+import com.sfl.notifapp.data.model.TimerCategory
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.BottomSheetSettingsBinding
 import com.sfl.notifapp.receiver.AlarmScheduler
@@ -71,8 +72,20 @@ class SettingsBottomSheet(
             }
         }
 
+        // 2.5 Telegram Quest Switch
+        binding.switchQuestNotifs.isChecked = prefs.isCategoryEnabled(TimerCategory.QUESTS)
+        binding.switchQuestNotifs.setOnCheckedChangeListener { _, isChecked ->
+            prefs.setCategoryEnabled(TimerCategory.QUESTS, isChecked)
+            categoryAdapter.notifyDataSetChanged()
+            updateCountText()
+            rescheduleAlarms()
+        }
+
         // 3. Setup 29 Categories RecyclerView
-        categoryAdapter = CategorySettingsAdapter(prefs) { _, _ ->
+        categoryAdapter = CategorySettingsAdapter(prefs) { cat, isChecked ->
+            if (cat == TimerCategory.QUESTS) {
+                binding.switchQuestNotifs.isChecked = isChecked
+            }
             updateCountText()
             rescheduleAlarms()
         }
@@ -86,6 +99,7 @@ class SettingsBottomSheet(
         // 4. Select All / Deselect All
         binding.btnSelectAllCategories.setOnClickListener {
             prefs.setAllCategoriesEnabled(true)
+            binding.switchQuestNotifs.isChecked = true
             categoryAdapter.notifyDataSetChanged()
             updateCountText()
             rescheduleAlarms()
@@ -94,6 +108,7 @@ class SettingsBottomSheet(
 
         binding.btnDeselectAllCategories.setOnClickListener {
             prefs.setAllCategoriesEnabled(false)
+            binding.switchQuestNotifs.isChecked = false
             categoryAdapter.notifyDataSetChanged()
             updateCountText()
             rescheduleAlarms()

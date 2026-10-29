@@ -681,9 +681,13 @@ object SflTimerEngine {
         val quest = telegram?.getAsJsonObjectSafe("quest")
         if (quest != null) {
             val startAt = quest.getSafeLong("startAt")
-            val name = quest.getSafeString("name") ?: "Daily Quest"
+            val rawName = quest.getSafeString("name") ?: "Daily Quest"
+            val friendlyName = rawName.split("-", "_", " ")
+                .filter { it.isNotBlank() }
+                .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+                .ifBlank { "Daily Quest" }
             if (startAt != null && startAt > 0L) {
-                out.add(RawTimer(TimerCategory.QUESTS, name, startAt, 24 * 3600_000L, "📜"))
+                out.add(RawTimer(TimerCategory.QUESTS, friendlyName, startAt + 24 * 3600_000L, 24 * 3600_000L, "📜"))
             }
         }
     }

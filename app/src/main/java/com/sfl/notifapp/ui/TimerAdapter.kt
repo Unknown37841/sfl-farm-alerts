@@ -13,7 +13,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class TimerAdapter : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(TimerDiffCallback()) {
+class TimerAdapter(
+    private val onItemClick: ((FarmTimerItem) -> Unit)? = null
+) : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(TimerDiffCallback()) {
 
     private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     private val hourMinFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -34,6 +36,15 @@ class TimerAdapter : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(Ti
     inner class TimerViewHolder(private val binding: ItemTimerBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
+        init {
+            binding.root.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick?.invoke(getItem(position))
+                }
+            }
+        }
+
         fun bind(item: FarmTimerItem) {
             val context = binding.root.context
             binding.ivIcon.setImageResource(item.iconResId)
@@ -41,7 +52,11 @@ class TimerAdapter : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(Ti
 
             val readyTimeStr = hourMinFormat.format(Date(item.readyAt))
             val countStr = if (item.count > 1) "${item.count} items" else "1 item"
-            binding.tvSubtitle.text = "${item.category.displayName} · $countStr · Ready at $readyTimeStr"
+            if (item.category == com.sfl.notifapp.data.model.TimerCategory.QUESTS) {
+                binding.tvSubtitle.text = "${item.category.displayName} · برای سوال و جواب لمس کنید 👆"
+            } else {
+                binding.tvSubtitle.text = "${item.category.displayName} · $countStr · Ready at $readyTimeStr"
+            }
 
             val remainingMs = item.remainingMs
             if (remainingMs <= 0L) {

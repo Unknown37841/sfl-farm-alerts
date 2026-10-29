@@ -95,7 +95,7 @@ enum class TimerCategory(
     POWER_SKILLS("power_skills", "Power Skills", "مهارت‌های قدرتی", "⚡", R.drawable.ic_cat_power),
 
     @SerializedName("quests")
-    QUESTS("quests", "Quests", "ماموریت‌های روزانه", "📜", R.drawable.ic_cat_chest),
+    QUESTS("quests", "Daily Quest", "دیلی کوئست تلگرام", "📜", R.drawable.ic_cat_chest),
 
     @SerializedName("village_projects")
     VILLAGE_PROJECTS("village_projects", "Village Projects", "پروژه‌های روستا", "🏛️", R.drawable.ic_cat_bed),
