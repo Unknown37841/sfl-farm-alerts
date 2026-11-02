@@ -40,6 +40,9 @@ class BootReceiver : BroadcastReceiver() {
                 .build()
 
             WorkManager.getInstance(context).enqueue(syncWork)
+
+            // Start repeating hardware alarm sync immediately
+            AlarmScheduler.scheduleRepeatingSyncAlarm(context, 1)
         }
     }
 }

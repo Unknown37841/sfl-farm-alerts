@@ -52,6 +52,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.sfl.notifapp.ACTION_TRIGGER_TIMER" />
+                <action android:name="com.sfl.notifapp.ACTION_PERIODIC_SYNC" />
             </intent-filter>
         </receiver>
 
