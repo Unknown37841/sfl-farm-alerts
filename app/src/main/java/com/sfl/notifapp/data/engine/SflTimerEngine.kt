@@ -739,7 +739,7 @@ object SflTimerEngine {
                 .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
                 .ifBlank { "Daily Quest" }
             if (startAt != null && startAt > 0L) {
-                out.add(RawTimer(TimerCategory.QUESTS, friendlyName, startAt + 24 * 3600_000L, 24 * 3600_000L, "📜"))
+                out.add(RawTimer(TimerCategory.QUESTS, friendlyName, startAt, 24 * 3600_000L, "📜"))
             }
         }
     }
@@ -773,15 +773,26 @@ object SflTimerEngine {
 
     private fun clusterTimers(raw: List<RawTimer>): List<FarmTimerItem> {
         val result = mutableListOf<FarmTimerItem>()
+        val now = System.currentTimeMillis()
 
         // Group by category and itemName
         val grouped = raw.groupBy { "${it.category.key}_${it.itemName}" }
 
         for ((_, items) in grouped) {
-            val sorted = items.sortedBy { it.readyAt }
+            // 1. Separate items that are ALREADY ready (readyAt <= now) vs items still in progress (readyAt > now)
+            val readyItems = items.filter { it.readyAt <= now }
+            val pendingItems = items.filter { it.readyAt > now }
+
+            // All ready items of the exact same resource are merged into a single cluster (e.g. Iron (x11) Ready)
+            if (readyItems.isNotEmpty()) {
+                result.add(createTimerItem(readyItems))
+            }
+
+            // Pending items are clustered if their readyAt is within 90 seconds of each other
+            val sortedPending = pendingItems.sortedBy { it.readyAt }
             var currentCluster = mutableListOf<RawTimer>()
 
-            for (item in sorted) {
+            for (item in sortedPending) {
                 if (currentCluster.isEmpty()) {
                     currentCluster.add(item)
                 } else {

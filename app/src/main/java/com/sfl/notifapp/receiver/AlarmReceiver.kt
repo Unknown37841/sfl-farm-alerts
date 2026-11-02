@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.util.Log
@@ -48,9 +49,22 @@ class AlarmReceiver : BroadcastReceiver() {
             PowerManager.PARTIAL_WAKE_LOCK,
             "sfl:AlarmReceiverWakeLock"
         )
-        wakeLock?.acquire(10_000L) // Hold wake lock for max 10 seconds
+        wakeLock?.acquire(15_000L) // Hold wake lock for max 15 seconds
 
         try {
+            if (intent.action == AlarmScheduler.ACTION_PERIODIC_SYNC) {
+                Log.i(TAG, "Hardware periodic sync alarm triggered. Running sync worker.")
+                val syncWork = OneTimeWorkRequestBuilder<FarmSyncWorker>()
+                    .build()
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "sfl_alarm_periodic_sync",
+                    ExistingWorkPolicy.REPLACE,
+                    syncWork
+                )
+                AlarmScheduler.scheduleRepeatingSyncAlarm(context, 15)
+                return
+            }
+
             val title = intent.getStringExtra(EXTRA_TITLE) ?: "Sunflower Land"
             val body = intent.getStringExtra(EXTRA_BODY) ?: "Items are ready to collect!"
             val categoryKey = intent.getStringExtra(EXTRA_CATEGORY) ?: ""
@@ -115,7 +129,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 ExistingWorkPolicy.REPLACE,
                 postSyncWork
             )
-            Log.i(TAG, "Enqueued post-alarm auto-sync (5 min delay).")
+            // Also ensure hardware alarm sync runs after 10 min
+            AlarmScheduler.scheduleRepeatingSyncAlarm(context, 10)
+            Log.i(TAG, "Enqueued post-alarm auto-sync (5 min delay) + hardware alarm sync.")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to enqueue post-alarm sync: ${e.message}")
         }
@@ -155,15 +171,49 @@ class AlarmReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Tap opens MainActivity
-        val contentIntent = Intent(context, MainActivity::class.java).apply {
+        val prefs = PreferencesManager(context)
+        val clickAction = prefs.notifClickAction
+
+        // Primary tap action intent based on user preference
+        val primaryIntent = if (clickAction == PreferencesManager.ACTION_OPEN_APP) {
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("EXTRA_FARM_ID", farmId)
+            }
+        } else {
+            // Direct to game
+            Intent(Intent.ACTION_VIEW, Uri.parse("https://sunflower-land.com/play/")).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+        }
+
+        val primaryPendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            primaryIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Action Intent 1: Direct Play Game
+        val playIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://sunflower-land.com/play/")).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        val playPendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId + 100000,
+            playIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Action Intent 2: Open App
+        val appIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra("EXTRA_FARM_ID", farmId)
         }
-        val pendingIntent = PendingIntent.getActivity(
+        val appPendingIntent = PendingIntent.getActivity(
             context,
-            notificationId,
-            contentIntent,
+            notificationId + 200000,
+            appIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -192,7 +242,9 @@ class AlarmReceiver : BroadcastReceiver() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(primaryPendingIntent)
+            .addAction(R.drawable.ic_app_sunflower, "🎮 ورود به بازی", playPendingIntent)
+            .addAction(R.drawable.ic_stat_sunflower, "📱 نمایش در برنامه", appPendingIntent)
 
         if (largeIconBitmap != null) {
             builder.setLargeIcon(largeIconBitmap)

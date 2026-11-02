@@ -240,7 +240,7 @@
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/sunflower_gold"
-                android:text="🤖 ربات تلگرام"
+                android:text="🤖 ربات Pumpkin Pete"
                 android:textColor="@color/bg_dark"
                 android:textSize="13sp"
                 android:textStyle="bold"

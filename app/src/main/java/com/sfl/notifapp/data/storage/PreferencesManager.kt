@@ -21,7 +21,14 @@ class PreferencesManager(context: Context) {
         private const val KEY_AUTO_SYNC_MINS = "pref_auto_sync_mins"
         private const val KEY_SCHEDULED_ALARMS = "pref_scheduled_alarms"
         private const val KEY_BATTERY_PROMPT_SEEN = "pref_battery_prompt_seen"
+        private const val KEY_NOTIF_CLICK_ACTION = "pref_notif_click_action"
+        const val ACTION_OPEN_GAME = "GAME"
+        const val ACTION_OPEN_APP = "APP"
     }
+
+    var notifClickAction: String
+        get() = prefs.getString(KEY_NOTIF_CLICK_ACTION, ACTION_OPEN_GAME) ?: ACTION_OPEN_GAME
+        set(value) = prefs.edit().putString(KEY_NOTIF_CLICK_ACTION, value).apply()
 
     var hasSeenBatteryPrompt: Boolean
         get() = prefs.getBoolean(KEY_BATTERY_PROMPT_SEEN, false)

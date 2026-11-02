@@ -72,20 +72,22 @@ class SettingsBottomSheet(
             }
         }
 
-        // 2.5 Telegram Quest Switch
-        binding.switchQuestNotifs.isChecked = prefs.isCategoryEnabled(TimerCategory.QUESTS)
-        binding.switchQuestNotifs.setOnCheckedChangeListener { _, isChecked ->
-            prefs.setCategoryEnabled(TimerCategory.QUESTS, isChecked)
-            categoryAdapter.notifyDataSetChanged()
-            updateCountText()
-            rescheduleAlarms()
+        // 2.5 Notification Tap Action (Game vs App)
+        if (prefs.notifClickAction == PreferencesManager.ACTION_OPEN_APP) {
+            binding.rbActionOpenApp.isChecked = true
+        } else {
+            binding.rbActionOpenGame.isChecked = true
+        }
+        binding.rgNotificationAction.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId == R.id.rbActionOpenApp) {
+                prefs.notifClickAction = PreferencesManager.ACTION_OPEN_APP
+            } else {
+                prefs.notifClickAction = PreferencesManager.ACTION_OPEN_GAME
+            }
         }
 
         // 3. Setup 29 Categories RecyclerView
-        categoryAdapter = CategorySettingsAdapter(prefs) { cat, isChecked ->
-            if (cat == TimerCategory.QUESTS) {
-                binding.switchQuestNotifs.isChecked = isChecked
-            }
+        categoryAdapter = CategorySettingsAdapter(prefs) { _, _ ->
             updateCountText()
             rescheduleAlarms()
         }
@@ -99,7 +101,6 @@ class SettingsBottomSheet(
         // 4. Select All / Deselect All
         binding.btnSelectAllCategories.setOnClickListener {
             prefs.setAllCategoriesEnabled(true)
-            binding.switchQuestNotifs.isChecked = true
             categoryAdapter.notifyDataSetChanged()
             updateCountText()
             rescheduleAlarms()
@@ -108,7 +109,6 @@ class SettingsBottomSheet(
 
         binding.btnDeselectAllCategories.setOnClickListener {
             prefs.setAllCategoriesEnabled(false)
-            binding.switchQuestNotifs.isChecked = false
             categoryAdapter.notifyDataSetChanged()
             updateCountText()
             rescheduleAlarms()

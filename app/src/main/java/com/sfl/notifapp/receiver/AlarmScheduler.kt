@@ -13,6 +13,7 @@ import com.sfl.notifapp.data.storage.PreferencesManager
 object AlarmScheduler {
     private const val TAG = "AlarmScheduler"
     const val ACTION_TRIGGER_TIMER = "com.sfl.notifapp.ACTION_TRIGGER_TIMER"
+    const val ACTION_PERIODIC_SYNC = "com.sfl.notifapp.ACTION_PERIODIC_SYNC"
 
     fun scheduleTimers(context: Context, timers: List<FarmTimerItem>) {
         val prefs = PreferencesManager(context)
@@ -81,6 +82,9 @@ object AlarmScheduler {
 
         prefs.saveScheduledAlarmIds(scheduledIds)
         Log.i(TAG, "Scheduled ${scheduledIds.size} exact offline alarms.")
+
+        // Ensure a repeating sync alarm is scheduled (every 15 min) to keep farm data fresh in background
+        scheduleRepeatingSyncAlarm(context, 15)
     }
 
     fun cancelAllAlarms(context: Context) {
@@ -133,5 +137,40 @@ object AlarmScheduler {
             triggerAt,
             pendingIntent
         )
+    }
+
+    fun scheduleRepeatingSyncAlarm(context: Context, delayMinutes: Long = 15) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val triggerAt = System.currentTimeMillis() + (delayMinutes * 60_000L)
+
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_PERIODIC_SYNC
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            888888,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAt,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAt,
+                    pendingIntent
+                )
+            }
+            Log.d(TAG, "Scheduled repeating sync alarm for $delayMinutes mins later")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to schedule repeating sync alarm: ${e.message}")
+        }
     }
 }

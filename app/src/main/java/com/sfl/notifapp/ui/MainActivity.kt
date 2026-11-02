@@ -95,9 +95,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         tickerHandler.post(tickerRunnable)
-        // Clear any delivered farm notifications from tray when opening app
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-        notificationManager?.cancelAll()
     }
 
     override fun onPause() {

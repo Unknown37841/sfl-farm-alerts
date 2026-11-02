@@ -97,7 +97,7 @@ class QuestDetailBottomSheet(
         // Telegram Bot button
         binding.btnOpenTelegram.setOnClickListener {
             try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/sunflower_land_bot"))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/pumpkin_pete_bot"))
                 startActivity(intent)
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "عدم امکان باز کردن تلگرام", Toast.LENGTH_SHORT).show()
