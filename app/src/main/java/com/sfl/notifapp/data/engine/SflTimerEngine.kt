@@ -690,12 +690,35 @@ object SflTimerEngine {
 
     // 25. Love Island
     private fun extractLoveIsland(farm: JsonObject, out: MutableList<RawTimer>) {
-        val island = farm.getAsJsonObjectSafe("floatingIsland") ?: farm.getAsJsonObjectSafe("loveIsland")
-        if (island != null) {
-            val resetAt = island.getSafeLong("nextResetAt") ?: island.getSafeLong("readyAt")
-            if (resetAt != null && resetAt > 0L) {
-                out.add(RawTimer(TimerCategory.LOVE_ISLAND, "Floating Island Event", resetAt, 24 * 3600_000L, "❤️"))
+        val island = farm.getAsJsonObjectSafe("floatingIsland") ?: farm.getAsJsonObjectSafe("loveIsland") ?: return
+        val now = System.currentTimeMillis()
+
+        // 1. Process official event flight schedule
+        val schedule = island.getAsJsonArraySafe("schedule")
+        if (schedule != null && schedule.size() > 0) {
+            var addedAny = false
+            for (elem in schedule) {
+                if (!elem.isJsonObject) continue
+                val sObj = elem.asJsonObject
+                val startAt = sObj.getSafeLong("startAt") ?: continue
+                val endAt = sObj.getSafeLong("endAt") ?: (startAt + 30 * 60_000L)
+                val duration = if (endAt > startAt) (endAt - startAt) else (30 * 60_000L)
+
+                // Only schedule events that are currently live or upcoming
+                if (endAt > now) {
+                    out.add(RawTimer(TimerCategory.LOVE_ISLAND, "Floating Island", startAt, duration, "❤️"))
+                    addedAny = true
+                }
             }
+            if (addedAny) return
+        }
+
+        // 2. Fallback for alternate schemas
+        val resetAt = island.getSafeLong("nextResetAt") 
+            ?: island.getSafeLong("readyAt") 
+            ?: island.getSafeLong("startAt")
+        if (resetAt != null && resetAt > 0L) {
+            out.add(RawTimer(TimerCategory.LOVE_ISLAND, "Floating Island", resetAt, 30 * 60_000L, "❤️"))
         }
     }
 
@@ -818,12 +841,24 @@ object SflTimerEngine {
     private fun createTimerItem(cluster: List<RawTimer>): FarmTimerItem {
         val representative = cluster.first()
         val count = cluster.size
-        val title = "${representative.itemName} (x$count)"
-
-        val body = if (count > 1) {
-            "$count items in ${representative.category.displayName} are ready!"
+        val title = if (representative.category == TimerCategory.LOVE_ISLAND ||
+            representative.category == TimerCategory.QUESTS ||
+            representative.category == TimerCategory.BUD_BOX
+        ) {
+            representative.itemName
         } else {
-            "1 item in ${representative.category.displayName} is ready to collect!"
+            "${representative.itemName} (x$count)"
+        }
+
+        val body = when (representative.category) {
+            TimerCategory.LOVE_ISLAND -> "بالن جزیره شناور (Love Island) در دسترس است! ❤️"
+            TimerCategory.QUESTS -> "دیلی کوئست روزانه تلگرام آماده شد! 📜"
+            TimerCategory.BUD_BOX -> "جعبه جوانه روزانه (Bud Box) آماده باز شدن است! 🎁"
+            else -> if (count > 1) {
+                "$count items in ${representative.category.displayName} are ready!"
+            } else {
+                "1 item in ${representative.category.displayName} is ready to collect!"
+            }
         }
 
         val id = "${representative.category.key}_${representative.itemName}_${representative.readyAt}".hashCode().toString()

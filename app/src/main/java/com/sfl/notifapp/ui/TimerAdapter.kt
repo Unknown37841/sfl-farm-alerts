@@ -54,6 +54,8 @@ class TimerAdapter(
             val countStr = if (item.count > 1) "${item.count} items" else "1 item"
             if (item.category == com.sfl.notifapp.data.model.TimerCategory.QUESTS) {
                 binding.tvSubtitle.text = "${item.category.displayName} · برای سوال و جواب لمس کنید 👆"
+            } else if (item.category == com.sfl.notifapp.data.model.TimerCategory.LOVE_ISLAND) {
+                binding.tvSubtitle.text = "${item.category.displayName} · پرواز بالن · $readyTimeStr"
             } else {
                 binding.tvSubtitle.text = "${item.category.displayName} · $countStr · Ready at $readyTimeStr"
             }
