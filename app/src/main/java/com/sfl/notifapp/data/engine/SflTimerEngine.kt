@@ -348,7 +348,7 @@ object SflTimerEngine {
                 val wood = obj.getAsJsonObjectSafe("wood")
                 if (wood != null && wood.has("choppedAt")) {
                     val choppedAt = wood.get("choppedAt").asLong
-                    val dur = wood.getSafeLong("duration") ?: TREE_DURATION_MS
+                    val dur = wood.getEffectiveDurationMs(TREE_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Wood (Tree)", choppedAt + dur, dur, "🪓"))
                 }
             }
@@ -361,7 +361,7 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: STONE_DURATION_MS
+                    val dur = stone.getEffectiveDurationMs(STONE_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Stone", minedAt + dur, dur, "🪨"))
                 }
             }
@@ -374,7 +374,7 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: IRON_DURATION_MS
+                    val dur = stone.getEffectiveDurationMs(IRON_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Iron", minedAt + dur, dur, "⛏️"))
                 }
             }
@@ -387,7 +387,7 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: GOLD_DURATION_MS
+                    val dur = stone.getEffectiveDurationMs(GOLD_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Gold", minedAt + dur, dur, "🪙"))
                 }
             }
@@ -400,7 +400,7 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: CRIMSTONE_DURATION_MS
+                    val dur = stone.getEffectiveDurationMs(CRIMSTONE_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Crimstone", minedAt + dur, dur, "💎"))
                 }
             }
@@ -413,7 +413,7 @@ object SflTimerEngine {
                 val stone = elem.asJsonObject.getAsJsonObjectSafe("stone")
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
-                    val dur = stone.getSafeLong("duration") ?: SUNSTONE_DURATION_MS
+                    val dur = stone.getEffectiveDurationMs(SUNSTONE_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Sunstone", minedAt + dur, dur, "☀️"))
                 }
             }
@@ -427,7 +427,7 @@ object SflTimerEngine {
                 val oilData = obj.getAsJsonObjectSafe("oil")
                 if (oilData != null && oilData.has("drilledAt")) {
                     val drilledAt = oilData.get("drilledAt").asLong
-                    val dur = oilData.getSafeLong("duration") ?: OIL_DURATION_MS
+                    val dur = oilData.getEffectiveDurationMs(OIL_DURATION_MS)
                     out.add(RawTimer(TimerCategory.RESOURCES, "Oil Reserve", drilledAt + dur, dur, "🛢️"))
                 }
             }
@@ -878,6 +878,19 @@ object SflTimerEngine {
 
     private fun JsonObject.getAsJsonObjectSafe(key: String): JsonObject? {
         return if (has(key) && get(key).isJsonObject) getAsJsonObject(key) else null
+    }
+
+    /**
+     * Reads the resource duration from the farm object.
+     * The game recently renamed `duration` to `baseDurationMs` and added
+     * `boostedTime` (ms shaved off the base duration by boosts).
+     */
+    private fun JsonObject.getEffectiveDurationMs(fallbackMs: Long): Long {
+        val base = getSafeLong("baseDurationMs")
+            ?: getSafeLong("duration")
+            ?: return fallbackMs
+        val boosted = getSafeLong("boostedTime") ?: 0L
+        return (base - boosted).coerceAtLeast(0L)
     }
 
     private fun JsonObject.getAsJsonArraySafe(key: String): JsonArray? {
