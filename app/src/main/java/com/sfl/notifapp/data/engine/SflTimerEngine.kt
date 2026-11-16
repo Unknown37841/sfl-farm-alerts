@@ -170,6 +170,7 @@ object SflTimerEngine {
     // 1. Crops
     private fun extractCrops(farm: JsonObject, out: MutableList<RawTimer>) {
         val crops = farm.getAsJsonObjectSafe("crops") ?: return
+        val farmWindows = getCropPlotWindows(farm)
         for ((_, elem) in crops.entrySet()) {
             if (!elem.isJsonObject) continue
             val plot = elem.asJsonObject
@@ -179,7 +180,12 @@ object SflTimerEngine {
             val plantedAt = crop.get("plantedAt").asLong
             val name = crop.getSafeString("name") ?: "Crop"
             val baseDur = crop.getEffectiveDurationMs(CROP_DURATIONS[name] ?: 3600_000L)
-            val readyAt = crop.getSafeLong("readyAt") ?: (plantedAt + baseDur)
+            // Grow-time boost windows: farm-wide buffs + this plot's fertiliser (e.g. Rapid Root 2x)
+            val windows = farmWindows + getFertiliserWindow(
+                plot,
+                "Rapid Root" to 2.0, "Sproutroot Surprise" to 2.0
+            )
+            val readyAt = computeWindowedReadyAt(plantedAt, baseDur, windows)
 
             out.add(RawTimer(TimerCategory.CROPS, name, readyAt, baseDur, "🌾"))
         }
@@ -188,6 +194,7 @@ object SflTimerEngine {
     // 2. Fruit Patches
     private fun extractFruits(farm: JsonObject, out: MutableList<RawTimer>) {
         val fruits = farm.getAsJsonObjectSafe("fruitPatches") ?: return
+        val farmWindows = getFruitPatchWindows(farm)
         for ((_, elem) in fruits.entrySet()) {
             if (!elem.isJsonObject) continue
             val patch = elem.asJsonObject
@@ -204,7 +211,9 @@ object SflTimerEngine {
 
             val name = fruit.getSafeString("name") ?: "Fruit"
             val baseDur = fruit.getEffectiveDurationMs(FRUIT_DURATIONS[name] ?: (8 * 3600_000L))
-            val readyAt = fruit.getSafeLong("readyAt") ?: (startedAt + baseDur)
+            // Boost windows + Turbofruit Mix fertiliser applied on the patch
+            val windows = farmWindows + getFertiliserWindow(patch, "Turbofruit Mix" to 1.25)
+            val readyAt = computeWindowedReadyAt(startedAt, baseDur, windows)
 
             out.add(RawTimer(TimerCategory.FRUIT_PATCHES, name, readyAt, baseDur, "🍊"))
         }
@@ -216,12 +225,16 @@ object SflTimerEngine {
         val pots = gh.getAsJsonObjectSafe("pots") ?: return
         for ((_, elem) in pots.entrySet()) {
             if (!elem.isJsonObject) continue
-            val plant = elem.asJsonObject.getAsJsonObjectSafe("plant") ?: continue
+            val pot = elem.asJsonObject
+            val plant = pot.getAsJsonObjectSafe("plant") ?: continue
             if (plant.has("plantedAt")) {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Greenhouse Plant"
                 val baseDur = plant.getEffectiveDurationMs(GREENHOUSE_DURATIONS[name] ?: (12 * 3600_000L))
-                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
+                // Boost windows + Greenhouse Glow fertiliser applied on the pot
+                val windows = getGreenhouseWindows(farm, name) +
+                    getFertiliserWindow(pot, "Greenhouse Glow" to 1.25)
+                val readyAt = computeWindowedReadyAt(plantedAt, baseDur, windows)
                 out.add(RawTimer(TimerCategory.GREENHOUSE, name, readyAt, baseDur, "🏡"))
             }
         }
@@ -261,7 +274,9 @@ object SflTimerEngine {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Flower"
                 val baseDur = plant.getEffectiveDurationMs(getFlowerDuration(name))
-                val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
+                // Boost windows: Blossom Hourglass / Moth Shrine
+                val windows = getFlowerBedWindows(farm)
+                val readyAt = computeWindowedReadyAt(plantedAt, baseDur, windows)
                 out.add(RawTimer(TimerCategory.FLOWERS, name, readyAt, baseDur, "🌸"))
             }
         }
@@ -341,6 +356,7 @@ object SflTimerEngine {
     // 7. Resources (Trees, Stones, Iron, Gold, Crimstone, Sunstone, Oil)
     private fun extractResources(farm: JsonObject, out: MutableList<RawTimer>) {
         // Trees
+        val treeWindows = getTreeWindows(farm)
         val trees = farm.getAsJsonObjectSafe("trees")
         trees?.entrySet()?.forEach { (_, elem) ->
             if (elem.isJsonObject) {
@@ -349,12 +365,14 @@ object SflTimerEngine {
                 if (wood != null && wood.has("choppedAt")) {
                     val choppedAt = wood.get("choppedAt").asLong
                     val dur = wood.getEffectiveDurationMs(TREE_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Wood (Tree)", choppedAt + dur, dur, "🪓"))
+                    val readyAt = computeWindowedReadyAt(choppedAt, dur, treeWindows)
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Wood (Tree)", readyAt, dur, "🪓"))
                 }
             }
         }
 
         // Stones
+        val stoneWindows = getMineWindows(farm, "Stone")
         val stones = farm.getAsJsonObjectSafe("stones")
         stones?.entrySet()?.forEach { (_, elem) ->
             if (elem.isJsonObject) {
@@ -362,12 +380,14 @@ object SflTimerEngine {
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
                     val dur = stone.getEffectiveDurationMs(STONE_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Stone", minedAt + dur, dur, "🪨"))
+                    val readyAt = computeWindowedReadyAt(minedAt, dur, stoneWindows)
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Stone", readyAt, dur, "🪨"))
                 }
             }
         }
 
         // Iron
+        val ironWindows = getMineWindows(farm, "Iron")
         val iron = farm.getAsJsonObjectSafe("iron")
         iron?.entrySet()?.forEach { (_, elem) ->
             if (elem.isJsonObject) {
@@ -375,12 +395,14 @@ object SflTimerEngine {
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
                     val dur = stone.getEffectiveDurationMs(IRON_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Iron", minedAt + dur, dur, "⛏️"))
+                    val readyAt = computeWindowedReadyAt(minedAt, dur, ironWindows)
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Iron", readyAt, dur, "⛏️"))
                 }
             }
         }
 
         // Gold
+        val goldWindows = getMineWindows(farm, "Gold")
         val gold = farm.getAsJsonObjectSafe("gold")
         gold?.entrySet()?.forEach { (_, elem) ->
             if (elem.isJsonObject) {
@@ -388,12 +410,14 @@ object SflTimerEngine {
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
                     val dur = stone.getEffectiveDurationMs(GOLD_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Gold", minedAt + dur, dur, "🪙"))
+                    val readyAt = computeWindowedReadyAt(minedAt, dur, goldWindows)
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Gold", readyAt, dur, "🪙"))
                 }
             }
         }
 
         // Crimstone
+        val crimstoneWindows = getMineWindows(farm, "Crimstone")
         val crimstones = farm.getAsJsonObjectSafe("crimstones")
         crimstones?.entrySet()?.forEach { (_, elem) ->
             if (elem.isJsonObject) {
@@ -401,7 +425,8 @@ object SflTimerEngine {
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
                     val dur = stone.getEffectiveDurationMs(CRIMSTONE_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Crimstone", minedAt + dur, dur, "💎"))
+                    val readyAt = computeWindowedReadyAt(minedAt, dur, crimstoneWindows)
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Crimstone", readyAt, dur, "💎"))
                 }
             }
         }
@@ -414,12 +439,14 @@ object SflTimerEngine {
                 if (stone != null && stone.has("minedAt")) {
                     val minedAt = stone.get("minedAt").asLong
                     val dur = stone.getEffectiveDurationMs(SUNSTONE_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Sunstone", minedAt + dur, dur, "☀️"))
+                    val readyAt = computeWindowedReadyAt(minedAt, dur, emptyList())
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Sunstone", readyAt, dur, "☀️"))
                 }
             }
         }
 
         // Oil Reserves
+        val oilWindows = getOilWindows(farm)
         val oil = farm.getAsJsonObjectSafe("oilReserves")
         oil?.entrySet()?.forEach { (_, elem) ->
             if (elem.isJsonObject) {
@@ -428,7 +455,8 @@ object SflTimerEngine {
                 if (oilData != null && oilData.has("drilledAt")) {
                     val drilledAt = oilData.get("drilledAt").asLong
                     val dur = oilData.getEffectiveDurationMs(OIL_DURATION_MS)
-                    out.add(RawTimer(TimerCategory.RESOURCES, "Oil Reserve", drilledAt + dur, dur, "🛢️"))
+                    val readyAt = computeWindowedReadyAt(drilledAt, dur, oilWindows)
+                    out.add(RawTimer(TimerCategory.RESOURCES, "Oil Reserve", readyAt, dur, "🛢️"))
                 }
             }
         }
@@ -891,6 +919,217 @@ object SflTimerEngine {
             ?: return fallbackMs
         val boosted = getSafeLong("boostedTime") ?: 0L
         return (base - boosted).coerceAtLeast(0L)
+    }
+
+    // ---- Boost speed-window model (ported from the game's boostWindows.ts) ----
+
+    private data class BoostWindow(val from: Long, val to: Long, val speed: Double)
+
+    private const val MAX_SAFE_MS = 9007199254740991L
+
+    /** Cooldown (ms) during which a placed temporary collectible stays active. */
+    private val COLLECTIBLE_EXPIRY_MS: Map<String, Long> = mapOf(
+        "Time Warp Totem" to 4 * 3600_000L,
+        "Super Totem" to 7 * 24 * 3600_000L,
+        "Harvest Hourglass" to 9 * 3600_000L,
+        "Timber Hourglass" to 4 * 3600_000L,
+        "Ore Hourglass" to 5 * 3600_000L,
+        "Orchard Hourglass" to 8 * 3600_000L,
+        "Blossom Hourglass" to 12 * 3600_000L,
+        "Sparrow Shrine" to 7 * 24 * 3600_000L,
+        "Tortoise Shrine" to 7 * 24 * 3600_000L,
+        "Toucan Shrine" to 7 * 24 * 3600_000L,
+        "Moth Shrine" to 7 * 24 * 3600_000L,
+        "Mole Shrine" to 7 * 24 * 3600_000L,
+        "Badger Shrine" to 7 * 24 * 3600_000L,
+        "Stag Shrine" to 7 * 24 * 3600_000L
+    )
+
+    /**
+     * Windows of one temporary collectible: live placements (farm.collectibles,
+     * expiry = createdAt + cooldown) unioned with finalised intervals in
+     * farm.boostHistory, then merged (a boost never stacks with itself).
+     */
+    private fun getBoostWindows(farm: JsonObject, name: String, speed: Double): List<BoostWindow> {
+        val windows = mutableListOf<BoostWindow>()
+        val placements = farm.getAsJsonObjectSafe("collectibles")?.getAsJsonArraySafe(name)
+        if (placements != null) {
+            for (i in 0 until placements.size()) {
+                val el = placements.get(i)
+                if (!el.isJsonObject) continue
+                val placed = el.asJsonObject
+                val createdAt = placed.getSafeLong("createdAt") ?: continue
+                val cooldown = COLLECTIBLE_EXPIRY_MS[name]
+                val expiry = if (cooldown != null) {
+                    createdAt + cooldown + (placed.getSafeLong("extendedMs") ?: 0L)
+                } else MAX_SAFE_MS
+                val removedAt = placed.getSafeLong("removedAt") ?: MAX_SAFE_MS
+                val to = minOf(expiry, removedAt)
+                if (to > createdAt) windows.add(BoostWindow(createdAt, to, speed))
+            }
+        }
+        val history = farm.getAsJsonObjectSafe("boostHistory")?.getAsJsonArraySafe(name)
+        if (history != null) {
+            for (i in 0 until history.size()) {
+                val el = history.get(i)
+                if (!el.isJsonObject) continue
+                val w = el.asJsonObject
+                val from = w.getSafeLong("from") ?: continue
+                val to = w.getSafeLong("to") ?: continue
+                if (to > from) windows.add(BoostWindow(from, to, speed))
+            }
+        }
+        return mergeWindows(windows)
+    }
+
+    /** Sort + coalesce overlapping/adjacent windows of the same speed. */
+    private fun mergeWindows(windows: List<BoostWindow>): List<BoostWindow> {
+        if (windows.isEmpty()) return emptyList()
+        val out = mutableListOf<BoostWindow>()
+        for (w in windows.sortedWith(compareBy({ it.from }, { it.to }))) {
+            val last = out.lastOrNull()
+            if (last != null && w.speed == last.speed && w.from <= last.to) {
+                if (w.to > last.to) out[out.size - 1] = last.copy(to = w.to)
+            } else {
+                out.add(w)
+            }
+        }
+        return out
+    }
+
+    /** Super & Time Warp Totems are both 2x and must not stack with each other. */
+    private fun getMergedTotemWindows(farm: JsonObject, speed: Double): List<BoostWindow> =
+        mergeWindows(getBoostWindows(farm, "Super Totem", speed) + getBoostWindows(farm, "Time Warp Totem", speed))
+
+    /** Power hour lives in farm.buffs (active) + boostHistory (finished). */
+    private fun getPowerHourWindows(farm: JsonObject): List<BoostWindow> {
+        val windows = mutableListOf<BoostWindow>()
+        val buff = farm.getAsJsonObjectSafe("buffs")?.getAsJsonObjectSafe("Power hour")
+        val startedAt = buff?.getSafeLong("startedAt")
+        if (startedAt != null) {
+            val to = startedAt + (buff.getSafeLong("durationMS") ?: 0L)
+            if (to > startedAt) windows.add(BoostWindow(startedAt, to, 2.0))
+        }
+        val history = farm.getAsJsonObjectSafe("boostHistory")?.getAsJsonArraySafe("Power hour")
+        if (history != null) {
+            for (i in 0 until history.size()) {
+                val el = history.get(i)
+                if (!el.isJsonObject) continue
+                val w = el.asJsonObject
+                val from = w.getSafeLong("from") ?: continue
+                val to = w.getSafeLong("to") ?: continue
+                if (to > from) windows.add(BoostWindow(from, to, 2.0))
+            }
+        }
+        return mergeWindows(windows)
+    }
+
+    /** Sunshower is boostHistory-only. */
+    private fun getSunshowerWindows(farm: JsonObject): List<BoostWindow> {
+        val history = farm.getAsJsonObjectSafe("boostHistory")?.getAsJsonArraySafe("Sunshower") ?: return emptyList()
+        val out = mutableListOf<BoostWindow>()
+        for (i in 0 until history.size()) {
+            val el = history.get(i)
+            if (!el.isJsonObject) continue
+            val w = el.asJsonObject
+            val from = w.getSafeLong("from") ?: continue
+            val to = w.getSafeLong("to") ?: continue
+            if (to > from) out.add(BoostWindow(from, to, 2.0))
+        }
+        return out
+    }
+
+    private fun getCropPlotWindows(farm: JsonObject): List<BoostWindow> =
+        getBoostWindows(farm, "Sparrow Shrine", 1.35) +
+            getBoostWindows(farm, "Harvest Hourglass", 1.35) +
+            getMergedTotemWindows(farm, 2.0) +
+            getPowerHourWindows(farm) +
+            getSunshowerWindows(farm)
+
+    private fun getTreeWindows(farm: JsonObject): List<BoostWindow> =
+        getMergedTotemWindows(farm, 2.0) +
+            getBoostWindows(farm, "Timber Hourglass", 1.35) +
+            getBoostWindows(farm, "Badger Shrine", 1.35)
+
+    /** Mines: stone gets Badger, iron/gold get Mole, crimstone Mole-only, sunstone none. */
+    private fun getMineWindows(farm: JsonObject, resource: String): List<BoostWindow> = when (resource) {
+        "Stone" -> getMergedTotemWindows(farm, 2.0) +
+            getBoostWindows(farm, "Ore Hourglass", 2.0) +
+            getBoostWindows(farm, "Badger Shrine", 1.35)
+        "Iron", "Gold" -> getMergedTotemWindows(farm, 2.0) +
+            getBoostWindows(farm, "Ore Hourglass", 2.0) +
+            getBoostWindows(farm, "Mole Shrine", 1.35)
+        "Crimstone" -> getBoostWindows(farm, "Mole Shrine", 1.35)
+        else -> emptyList() // Sunstone / Ascension Crystal: no temporary boost
+    }
+
+    private fun getOilWindows(farm: JsonObject): List<BoostWindow> =
+        getBoostWindows(farm, "Stag Shrine", 1.35)
+
+    private fun getFruitPatchWindows(farm: JsonObject): List<BoostWindow> =
+        getMergedTotemWindows(farm, 2.0) +
+            getBoostWindows(farm, "Orchard Hourglass", 1.35) +
+            getBoostWindows(farm, "Toucan Shrine", 1.35)
+
+    private fun getGreenhouseWindows(farm: JsonObject, plantName: String?): List<BoostWindow> {
+        val shared = getMergedTotemWindows(farm, 2.0) +
+            getBoostWindows(farm, "Tortoise Shrine", 1.5)
+        val hourglass = if (plantName == "Grape") "Orchard Hourglass" else "Harvest Hourglass"
+        return shared + getBoostWindows(farm, hourglass, 1.35)
+    }
+
+    private fun getFlowerBedWindows(farm: JsonObject): List<BoostWindow> =
+        getBoostWindows(farm, "Blossom Hourglass", 1.35) +
+            getBoostWindows(farm, "Moth Shrine", 1.35)
+
+    /**
+     * Fertiliser speed window on a plot/patch/pot: [fertilisedAt, inf) with the
+     * grow-TIME multiplier. Open-ended — it stays active until harvest.
+     */
+    private fun getFertiliserWindow(holder: JsonObject, vararg speeds: Pair<String, Double>): List<BoostWindow> {
+        val fert = holder.getAsJsonObjectSafe("fertiliser") ?: return emptyList()
+        val name = fert.getSafeString("name") ?: return emptyList()
+        val speed = speeds.firstOrNull { it.first == name }?.second ?: return emptyList()
+        val fertilisedAt = fert.getSafeLong("fertilisedAt") ?: return emptyList()
+        return listOf(BoostWindow(fertilisedAt, MAX_SAFE_MS, speed))
+    }
+
+    /**
+     * Port of the game's computeReadyAt (boostWindows.ts): work accrues at the
+     * effective speed — the PRODUCT of every covering window, so overlapping
+     * boosts stack multiplicatively. Ready when accrued work reaches the
+     * (already boosted-time-adjusted) duration.
+     */
+    private fun computeWindowedReadyAt(startedAt: Long, baseDurationMs: Long, windows: List<BoostWindow>): Long {
+        if (baseDurationMs <= 0L) return startedAt
+        val clipped = windows.asSequence()
+            .map { it.copy(from = maxOf(it.from, startedAt)) }
+            .filter { it.to > it.from }
+            .toList()
+        if (clipped.isEmpty()) return startedAt + baseDurationMs
+        val bounds = sortedSetOf(startedAt)
+        clipped.forEach {
+            bounds.add(it.from)
+            bounds.add(it.to)
+        }
+        val ordered = bounds.toList()
+        var accumulated = 0.0
+        for (i in 0 until ordered.size - 1) {
+            val from = ordered[i]
+            val to = ordered[i + 1]
+            val mid = (from + to) / 2.0
+            var speed = 1.0
+            for (w in clipped) {
+                if (w.from.toDouble() <= mid && mid < w.to.toDouble()) speed *= w.speed
+            }
+            val segmentWork = (to - from) * speed
+            if (accumulated + segmentWork >= baseDurationMs) {
+                return from + ((baseDurationMs - accumulated) / speed).toLong()
+            }
+            accumulated += segmentWork
+        }
+        // Tail beyond the final boundary runs at 1x.
+        return ordered.last() + (baseDurationMs - accumulated).toLong()
     }
 
     private fun JsonObject.getAsJsonArraySafe(key: String): JsonArray? {
