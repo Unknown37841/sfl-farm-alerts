@@ -178,7 +178,7 @@ object SflTimerEngine {
 
             val plantedAt = crop.get("plantedAt").asLong
             val name = crop.getSafeString("name") ?: "Crop"
-            val baseDur = CROP_DURATIONS[name] ?: 3600_000L
+            val baseDur = crop.getEffectiveDurationMs(CROP_DURATIONS[name] ?: 3600_000L)
             val readyAt = crop.getSafeLong("readyAt") ?: (plantedAt + baseDur)
 
             out.add(RawTimer(TimerCategory.CROPS, name, readyAt, baseDur, "🌾"))
@@ -203,7 +203,7 @@ object SflTimerEngine {
             if (startedAt <= 0L) continue
 
             val name = fruit.getSafeString("name") ?: "Fruit"
-            val baseDur = FRUIT_DURATIONS[name] ?: (8 * 3600_000L)
+            val baseDur = fruit.getEffectiveDurationMs(FRUIT_DURATIONS[name] ?: (8 * 3600_000L))
             val readyAt = fruit.getSafeLong("readyAt") ?: (startedAt + baseDur)
 
             out.add(RawTimer(TimerCategory.FRUIT_PATCHES, name, readyAt, baseDur, "🍊"))
@@ -220,7 +220,7 @@ object SflTimerEngine {
             if (plant.has("plantedAt")) {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Greenhouse Plant"
-                val baseDur = GREENHOUSE_DURATIONS[name] ?: (12 * 3600_000L)
+                val baseDur = plant.getEffectiveDurationMs(GREENHOUSE_DURATIONS[name] ?: (12 * 3600_000L))
                 val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
                 out.add(RawTimer(TimerCategory.GREENHOUSE, name, readyAt, baseDur, "🏡"))
             }
@@ -260,7 +260,7 @@ object SflTimerEngine {
             if (plant.has("plantedAt")) {
                 val plantedAt = plant.get("plantedAt").asLong
                 val name = plant.getSafeString("name") ?: "Flower"
-                val baseDur = getFlowerDuration(name)
+                val baseDur = plant.getEffectiveDurationMs(getFlowerDuration(name))
                 val readyAt = plant.getSafeLong("readyAt") ?: (plantedAt + baseDur)
                 out.add(RawTimer(TimerCategory.FLOWERS, name, readyAt, baseDur, "🌸"))
             }
@@ -471,7 +471,7 @@ object SflTimerEngine {
                 if (!elem.isJsonObject) continue
                 val trap = elem.asJsonObject
                 val harvestedAt = trap.getSafeLong("harvestedAt") ?: trap.getSafeLong("placedAt") ?: continue
-                val dur = trap.getSafeLong("duration") ?: DEFAULT_CRAB_TRAP_MS
+                val dur = trap.getEffectiveDurationMs(DEFAULT_CRAB_TRAP_MS)
                 val readyAt = trap.getSafeLong("readyAt") ?: (harvestedAt + dur)
                 out.add(RawTimer(TimerCategory.CRAB_TRAPS, "Crab Trap", readyAt, dur, "🦀"))
             }
@@ -615,7 +615,7 @@ object SflTimerEngine {
         if (batch != null) {
             val readyAt = batch.getSafeLong("readyAt")
             if (readyAt != null && readyAt > 0L) {
-                val dur = batch.getSafeLong("duration") ?: (8 * 3600_000L)
+                val dur = batch.getEffectiveDurationMs(8 * 3600_000L)
                 out.add(RawTimer(TimerCategory.CAVE, "Myco Bin Batch", readyAt, dur, "⛏️"))
             }
         }
@@ -683,7 +683,7 @@ object SflTimerEngine {
             val itemObj = itemElem.asJsonObject
             val name = itemObj.getSafeString("name") ?: "Crafting Item"
             val readyAt = itemObj.getSafeLong("readyAt") ?: continue
-            val dur = itemObj.getSafeLong("duration") ?: 3600_000L
+            val dur = itemObj.getEffectiveDurationMs(3600_000L)
             out.add(RawTimer(TimerCategory.CRAFTING_BOX, name, readyAt, dur, "📦"))
         }
     }
