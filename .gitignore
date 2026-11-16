@@ -45,3 +45,4 @@ $RECYCLE.BIN/
 *.key
 google-services.json
 *_debug.json
+build_log.txt
