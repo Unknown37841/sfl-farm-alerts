@@ -100,7 +100,8 @@
             android:id="@+id/swPinMaster"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:thumbTint="@color/accent" />
+            android:thumbTint="@color/switch_thumb_selector"
+            android:trackTint="@color/switch_track_selector" />
     </LinearLayout>
 
     <View

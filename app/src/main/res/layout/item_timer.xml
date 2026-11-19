@@ -125,7 +125,8 @@
                 android:indeterminate="false"
                 android:textOff=""
                 android:textOn=""
-                android:thumbTint="@color/accent" />
+                android:thumbTint="@color/switch_thumb_selector"
+                android:trackTint="@color/switch_track_selector" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
