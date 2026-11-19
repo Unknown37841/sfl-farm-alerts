@@ -8,16 +8,19 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sfl.notifapp.R
 import com.sfl.notifapp.data.model.FarmTimerItem
+import com.sfl.notifapp.data.model.productKey
+import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.ItemTimerBinding
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class TimerAdapter(
-    private val onItemClick: ((FarmTimerItem) -> Unit)? = null
+    private val onItemClick: ((FarmTimerItem) -> Unit)? = null,
+    private val onPinToggle: ((FarmTimerItem, Boolean) -> Unit)? = null,
+    private val onPinSettingsClick: ((FarmTimerItem) -> Unit)? = null
 ) : ListAdapter<FarmTimerItem, TimerAdapter.TimerViewHolder>(TimerDiffCallback()) {
 
-    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     private val hourMinFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TimerViewHolder {
@@ -43,6 +46,12 @@ class TimerAdapter(
                     onItemClick?.invoke(getItem(position))
                 }
             }
+            binding.tvPinLabel.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onPinSettingsClick?.invoke(getItem(position))
+                }
+            }
         }
 
         fun bind(item: FarmTimerItem) {
@@ -58,6 +67,17 @@ class TimerAdapter(
                 binding.tvSubtitle.text = "${item.category.displayName} · پرواز بالن · $readyTimeStr"
             } else {
                 binding.tvSubtitle.text = "${item.category.displayName} · $countStr · Ready at $readyTimeStr"
+            }
+
+            // Pin switch reflects stored per-product setting; detach listener during rebind
+            val prefs = PreferencesManager(context)
+            binding.pinSwitch.setOnCheckedChangeListener(null)
+            binding.pinSwitch.isChecked = prefs.isTreePinEnabled(prefs.farmId, item.productKey)
+            binding.pinSwitch.setOnCheckedChangeListener { _, isChecked ->
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onPinToggle?.invoke(getItem(position), isChecked)
+                }
             }
 
             val remainingMs = item.remainingMs

@@ -35,6 +35,7 @@ class AlarmReceiver : BroadcastReceiver() {
         const val CHANNEL_ID = "sfl_farm_alerts_channel"
         const val CHANNEL_NAME = "Sunflower Land Farm Alerts"
         const val EXTRA_TIMER_ID = "extra_timer_id"
+        const val EXTRA_PRODUCT_KEY = "extra_product_key"
         const val EXTRA_TITLE = "extra_title"
         const val EXTRA_BODY = "extra_body"
         const val EXTRA_CATEGORY = "extra_category"
@@ -52,6 +53,11 @@ class AlarmReceiver : BroadcastReceiver() {
         wakeLock?.acquire(15_000L) // Hold wake lock for max 15 seconds
 
         try {
+            if (intent.action == AlarmScheduler.ACTION_TREE_PIN_REPEAT) {
+                TreePinManager.onRepeatFired(context, intent)
+                return
+            }
+
             if (intent.action == AlarmScheduler.ACTION_PERIODIC_SYNC) {
                 Log.i(TAG, "Hardware periodic sync alarm triggered. Running sync worker.")
                 val syncWork = OneTimeWorkRequestBuilder<FarmSyncWorker>()
@@ -76,6 +82,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
             val prefs = PreferencesManager(context)
 
+            // The chain's first notification is sent here; later ones come from the repeat alarm.
             // 1. If readyAt was passed and is still far in the future (>60s), ignore stale/premature alarm
             if (readyAt > now + 60_000L) {
                 Log.w(TAG, "Ignoring premature alarm for '$title': readyAt is in the future ($readyAt > now $now)")
@@ -98,6 +105,15 @@ class AlarmReceiver : BroadcastReceiver() {
                 return
             }
             prefs.saveLastNotifiedTime(notifKey, now)
+
+            // Per-product "remind me until harvested" chain takes over the first notification.
+            val readyTimer = prefs.getCachedTimers().firstOrNull { it.id == timerId || it.title == title }
+            if (readyTimer != null && readyTimer.readyAt <= now + 60_000L &&
+                TreePinManager.onTimerReady(context, readyTimer, farmId)
+            ) {
+                schedulePostAlarmSync(context)
+                return
+            }
 
             // 4. Stable notification ID per item so it updates in-place rather than creating duplicate spam
             val notifId = (farmId + categoryKey + title).hashCode()
@@ -137,14 +153,15 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun showNotification(
+    fun showNotification(
         context: Context,
         title: String,
         body: String,
         farmId: String,
         notificationId: Int,
         categoryKey: String = "",
-        explicitIconResId: Int = 0
+        explicitIconResId: Int = 0,
+        isOngoing: Boolean = false
     ) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -240,7 +257,8 @@ class AlarmReceiver : BroadcastReceiver() {
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setAutoCancel(true)
+            .setAutoCancel(!isOngoing)
+            .setOngoing(isOngoing)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setContentIntent(primaryPendingIntent)
             .addAction(R.drawable.ic_app_sunflower, "🎮 ورود به بازی", playPendingIntent)

@@ -365,6 +365,14 @@ fun resolveItemIcon(title: String, category: TimerCategory): Int? {
     }
 }
 
+/**
+ * Stable identity for a product across ready/harvest/replant cycles.
+ * Timer ids and titles change when readyAt or the number of ready items changes,
+ * so per-product settings must key off category + item name instead.
+ */
+val FarmTimerItem.productKey: String
+    get() = category.key + "|" + title.substringBefore(" (x")
+
 data class SyncResult(
     val success: Boolean,
     val farmId: String,

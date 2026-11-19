@@ -2,4 +2,14 @@
     <string name="app_name">SFL Alerts</string>
     <string name="channel_name">Farm Alerts &amp; Timers</string>
     <string name="channel_description">Notifications when crops, trees, animals, and resources are ready to collect</string>
+    <string name="tv_pin_label">Pin Notification</string>
+    <string name="tv_pin_settings_title">Pin Notification Settings</string>
+    <string name="tv_pin_interval_label">Repeat every</string>
+    <string name="tv_pin_max_label">Max notifications</string>
+    <string name="tv_pin_save">Save</string>
+    <string name="tv_pin_cancel">Cancel</string>
+    <string name="tv_pin_unit_minutes">minutes</string>
+    <string name="tv_pin_unit_times">times</string>
+    <string name="btn_close">✕</string>
+    <string name="tv_pin_master_hint">Remind me until harvested</string>
 </resources>

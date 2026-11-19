@@ -24,6 +24,19 @@ class PreferencesManager(context: Context) {
         private const val KEY_NOTIF_CLICK_ACTION = "pref_notif_click_action"
         const val ACTION_OPEN_GAME = "GAME"
         const val ACTION_OPEN_APP = "APP"
+
+        // --- Per-product harvest reminders (farmId + stable product key) ---
+        private const val KEY_TREE_PIN_ENABLED = "pref_tree_pin_enabled"
+        private const val KEY_TREE_PIN_INTERVAL = "pref_tree_pin_interval"
+        private const val KEY_TREE_PIN_MAX = "pref_tree_pin_max_count"
+        private const val KEY_TREE_PIN_SENT = "pref_tree_pin_sent"
+        private const val KEY_TREE_PIN_LAST_READY = "pref_tree_pin_last_ready"
+        private const val KEY_ACTIVE_TREE_PINS = "pref_active_tree_pins"
+        private const val KEY_TREE_PIN_TITLE = "pref_tree_pin_title_"
+        private const val KEY_TREE_PIN_BODY = "pref_tree_pin_body_"
+        private const val KEY_TREE_PIN_CATEGORY = "pref_tree_pin_category_"
+        private const val KEY_TREE_PIN_ICON = "pref_tree_pin_icon_"
+        private const val KEY_TREE_PIN_READY_AT = "pref_tree_pin_ready_"
     }
 
     var notifClickAction: String
@@ -104,4 +117,117 @@ class PreferencesManager(context: Context) {
     fun saveLastNotifiedTime(key: String, timestamp: Long) {
         prefs.edit().putLong("last_notif_$key", timestamp).apply()
     }
+
+    // ============ Per-product harvest reminders ============
+
+    private fun pinKey(farmId: String, productKey: String) = "${farmId}@@${productKey}"
+
+    fun isTreePinEnabled(farmId: String, productKey: String): Boolean =
+        prefs.getBoolean(KEY_TREE_PIN_ENABLED + "_" + pinKey(farmId, productKey), false)
+
+    fun setTreePinEnabled(farmId: String, productKey: String, enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_TREE_PIN_ENABLED + "_" + pinKey(farmId, productKey), enabled).apply()
+    }
+
+    /** 1..1440 minutes. */
+    fun getTreePinInterval(farmId: String, productKey: String): Int =
+        prefs.getInt(KEY_TREE_PIN_INTERVAL + "_" + pinKey(farmId, productKey), 10).coerceIn(1, 1440)
+
+    fun setTreePinInterval(farmId: String, productKey: String, minutes: Int) {
+        prefs.edit().putInt(
+            KEY_TREE_PIN_INTERVAL + "_" + pinKey(farmId, productKey),
+            minutes.coerceIn(1, 1440)
+        ).apply()
+    }
+
+    /** 1..20 notifications for a single ready cycle. */
+    fun getTreePinMaxCount(farmId: String, productKey: String): Int =
+        prefs.getInt(KEY_TREE_PIN_MAX + "_" + pinKey(farmId, productKey), 3).coerceIn(1, 20)
+
+    fun setTreePinMaxCount(farmId: String, productKey: String, count: Int) {
+        prefs.edit().putInt(
+            KEY_TREE_PIN_MAX + "_" + pinKey(farmId, productKey),
+            count.coerceIn(1, 20)
+        ).apply()
+    }
+
+    fun getTreePinSentCount(farmId: String, productKey: String): Int =
+        prefs.getInt(KEY_TREE_PIN_SENT + "_" + pinKey(farmId, productKey), 0).coerceAtLeast(0)
+
+    fun setTreePinSentCount(farmId: String, productKey: String, count: Int) {
+        prefs.edit().putInt(KEY_TREE_PIN_SENT + "_" + pinKey(farmId, productKey), count).apply()
+    }
+
+    /** readyAt of the cycle the current reminder chain belongs to. */
+    fun getTreePinLastReadyAt(farmId: String, productKey: String): Long =
+        prefs.getLong(KEY_TREE_PIN_LAST_READY + "_" + pinKey(farmId, productKey), 0L)
+
+    fun setTreePinLastReadyAt(farmId: String, productKey: String, readyAt: Long) {
+        prefs.edit().putLong(KEY_TREE_PIN_LAST_READY + "_" + pinKey(farmId, productKey), readyAt).apply()
+    }
+
+    /** Active chains, used to restore alarms after a reboot. */
+    fun getActiveTreePins(): Set<String> =
+        prefs.getStringSet(KEY_ACTIVE_TREE_PINS, emptySet())?.toSet() ?: emptySet()
+
+    fun addActiveTreePin(farmId: String, productKey: String) {
+        val updated = getActiveTreePins().toMutableSet()
+        updated.add("${farmId}@@${productKey}")
+        prefs.edit().putStringSet(KEY_ACTIVE_TREE_PINS, updated).apply()
+    }
+
+    fun removeActiveTreePin(farmId: String, productKey: String) {
+        val updated = getActiveTreePins().toMutableSet()
+        updated.remove("${farmId}@@${productKey}")
+        prefs.edit().putStringSet(KEY_ACTIVE_TREE_PINS, updated).apply()
+    }
+
+    /** Pending info for an active reminder chain (needed to restore after reboot). */
+    fun saveTreePinInfo(farmId: String, productKey: String, info: TreePinInfo) {
+        val key = pinKey(farmId, productKey)
+        prefs.edit()
+            .putString(KEY_TREE_PIN_TITLE + key, info.title)
+            .putString(KEY_TREE_PIN_BODY + key, info.body)
+            .putString(KEY_TREE_PIN_CATEGORY + key, info.categoryKey)
+            .putInt(KEY_TREE_PIN_ICON + key, info.iconResId)
+            .putLong(KEY_TREE_PIN_READY_AT + key, info.readyAt)
+            .apply()
+    }
+
+    fun getTreePinInfo(farmId: String, productKey: String): TreePinInfo? {
+        val key = pinKey(farmId, productKey)
+        if (!prefs.contains(KEY_TREE_PIN_TITLE + key)) return null
+        return TreePinInfo(
+            title = prefs.getString(KEY_TREE_PIN_TITLE + key, "") ?: "",
+            body = prefs.getString(KEY_TREE_PIN_BODY + key, "") ?: "",
+            categoryKey = prefs.getString(KEY_TREE_PIN_CATEGORY + key, "") ?: "",
+            iconResId = prefs.getInt(KEY_TREE_PIN_ICON + key, 0),
+            readyAt = prefs.getLong(KEY_TREE_PIN_READY_AT + key, 0L)
+        )
+    }
+
+    fun clearTreePinInfo(farmId: String, productKey: String) {
+        val key = pinKey(farmId, productKey)
+        prefs.edit()
+            .remove(KEY_TREE_PIN_TITLE + key)
+            .remove(KEY_TREE_PIN_BODY + key)
+            .remove(KEY_TREE_PIN_CATEGORY + key)
+            .remove(KEY_TREE_PIN_ICON + key)
+            .remove(KEY_TREE_PIN_READY_AT + key)
+            .apply()
+    }
+
+    fun resetTreePin(farmId: String, productKey: String) {
+        removeActiveTreePin(farmId, productKey)
+        setTreePinSentCount(farmId, productKey, 0)
+        setTreePinLastReadyAt(farmId, productKey, 0L)
+    }
 }
+
+data class TreePinInfo(
+    val title: String,
+    val body: String,
+    val categoryKey: String,
+    val iconResId: Int,
+    val readyAt: Long
+)

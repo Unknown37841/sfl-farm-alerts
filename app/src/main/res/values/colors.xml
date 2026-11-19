@@ -21,6 +21,7 @@
 
     <color name="border_subtle">#4A3325</color>
     <color name="border_focus">#F59E0B</color>
+    <color name="accent">#F59E0B</color>
 
     <color name="badge_ready_bg">#153E20</color>
     <color name="badge_ready_text">#4ADE80</color>

@@ -14,6 +14,10 @@ object AlarmScheduler {
     private const val TAG = "AlarmScheduler"
     const val ACTION_TRIGGER_TIMER = "com.sfl.notifapp.ACTION_TRIGGER_TIMER"
     const val ACTION_PERIODIC_SYNC = "com.sfl.notifapp.ACTION_PERIODIC_SYNC"
+    const val ACTION_TREE_PIN = "com.sfl.notifapp.ACTION_TREE_PIN"
+    const val ACTION_TREE_PIN_REPEAT = "com.sfl.notifapp.ACTION_TREE_PIN_REPEAT"
+    const val ACTION_TREE_PIN_STOP = "com.sfl.notifapp.ACTION_TREE_PIN_STOP"
+    const val ACTION_TREE_NEXT = "com.sfl.notifapp.ACTION_TREE_NEXT"
 
     fun scheduleTimers(context: Context, timers: List<FarmTimerItem>) {
         val prefs = PreferencesManager(context)
@@ -154,23 +158,70 @@ object AlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            triggerAt,
+            pendingIntent
+        )
+    }
+
+    /**
+     * One repeating alarm per product. Request code uses farmId + productKey,
+     * so enabling reminders for two products never cancels the other's alarm.
+     */
+    fun scheduleTreePinRepeat(
+        context: Context,
+        farmId: String,
+        productKey: String,
+        title: String,
+        body: String,
+        categoryKey: String,
+        iconResId: Int,
+        intervalMinutes: Int
+    ) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val triggerAt = System.currentTimeMillis() + intervalMinutes.coerceIn(1, 1440) * 60_000L
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_TREE_PIN_REPEAT
+            putExtra(AlarmReceiver.EXTRA_FARM_ID, farmId)
+            putExtra(AlarmReceiver.EXTRA_PRODUCT_KEY, productKey)
+            putExtra(AlarmReceiver.EXTRA_TITLE, title)
+            putExtra(AlarmReceiver.EXTRA_BODY, body)
+            putExtra(AlarmReceiver.EXTRA_CATEGORY, categoryKey)
+            putExtra(AlarmReceiver.EXTRA_ICON_RES_ID, iconResId)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            TreePinManager.pinRequestCode(farmId, productKey),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAt,
-                    pendingIntent
-                )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAt,
-                    pendingIntent
-                )
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
-            Log.d(TAG, "Scheduled repeating sync alarm for $delayMinutes mins later")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to schedule repeating sync alarm: ${e.message}")
+            Log.d(TAG, "Harvest repeat scheduled: $productKey in $intervalMinutes min")
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Exact alarm permission missing for harvest repeat: ${e.message}")
+        }
+    }
+
+    fun cancelTreePinAlarm(context: Context, farmId: String, productKey: String) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_TREE_PIN_REPEAT
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            TreePinManager.pinRequestCode(farmId, productKey),
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel()
         }
     }
 }

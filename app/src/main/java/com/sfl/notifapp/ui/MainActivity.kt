@@ -27,9 +27,11 @@ import com.sfl.notifapp.data.api.SflApiClient
 import com.sfl.notifapp.data.engine.SflTimerEngine
 import com.sfl.notifapp.data.model.FarmTimerItem
 import com.sfl.notifapp.data.model.TimerCategory
+import com.sfl.notifapp.data.model.productKey
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.databinding.ActivityMainBinding
 import com.sfl.notifapp.receiver.AlarmScheduler
+import com.sfl.notifapp.receiver.TreePinManager
 import com.sfl.notifapp.util.BackgroundPermissionHelper
 import com.sfl.notifapp.worker.FarmSyncWorker
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +41,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), PinSettingsBottomSheet.OnPinSettingsChanged {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefs: PreferencesManager
@@ -125,12 +127,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        timerAdapter = TimerAdapter { item ->
-            if (item.category == com.sfl.notifapp.data.model.TimerCategory.QUESTS) {
-                val questSheet = QuestDetailBottomSheet(item)
-                questSheet.show(supportFragmentManager, "QuestDetailBottomSheet")
+        timerAdapter = TimerAdapter(
+            onItemClick = { item ->
+                if (item.category == com.sfl.notifapp.data.model.TimerCategory.QUESTS) {
+                    val questSheet = QuestDetailBottomSheet(item)
+                    questSheet.show(supportFragmentManager, "QuestDetailBottomSheet")
+                }
+            },
+            onPinToggle = { item, enabled ->
+                val farmId = prefs.farmId
+                prefs.setTreePinEnabled(farmId, item.productKey, enabled)
+                if (enabled) {
+                    // If the product is already ready (notification was likely
+                    // dismissed), start the reminder chain right away.
+                    if (item.remainingMs <= 0L) {
+                        TreePinManager.onTimerReady(this, item, farmId)
+                    }
+                } else {
+                    TreePinManager.stop(this, farmId, item.productKey)
+                }
+            },
+            onPinSettingsClick = { item ->
+                PinSettingsBottomSheet(item).show(supportFragmentManager, "PinSettingsBottomSheet")
             }
-        }
+        )
         binding.recyclerTimers.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = timerAdapter
@@ -437,6 +457,11 @@ class MainActivity : AppCompatActivity() {
             handleTouch(event)
             true
         }
+    }
+
+    override fun onPinSettingsChanged() {
+        // submitList with equal items would not rebind; force refresh instead
+        timerAdapter.notifyItemRangeChanged(0, timerAdapter.itemCount)
     }
 
     private fun updateFilteredList() {

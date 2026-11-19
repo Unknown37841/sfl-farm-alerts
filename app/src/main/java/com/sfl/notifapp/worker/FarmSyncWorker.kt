@@ -13,6 +13,7 @@ import com.sfl.notifapp.data.api.SflApiClient
 import com.sfl.notifapp.data.engine.SflTimerEngine
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.receiver.AlarmScheduler
+import com.sfl.notifapp.receiver.TreePinManager
 import java.util.concurrent.TimeUnit
 
 class FarmSyncWorker(
@@ -59,6 +60,9 @@ class FarmSyncWorker(
                 try {
                     val timers = SflTimerEngine.extractTimers(rootJson)
                     Log.i(TAG, "Sync complete: extracted ${timers.size} timers.")
+
+                    // A pinned product whose next ready time moved (or disappeared) was harvested.
+                    TreePinManager.syncWithFreshTimers(applicationContext, farmId, timers)
 
                     prefs.saveCachedTimers(timers)
                     prefs.lastSyncTimestamp = System.currentTimeMillis()

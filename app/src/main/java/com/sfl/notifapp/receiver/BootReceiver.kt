@@ -43,6 +43,9 @@ class BootReceiver : BroadcastReceiver() {
 
             // Start repeating hardware alarm sync immediately
             AlarmScheduler.scheduleRepeatingSyncAlarm(context, 1)
+
+            // Re-arm any "remind until harvested" chains lost on reboot
+            TreePinManager.restoreActive(context)
         }
     }
 }
