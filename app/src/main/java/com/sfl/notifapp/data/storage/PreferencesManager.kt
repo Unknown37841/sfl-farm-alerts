@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sfl.notifapp.data.model.FarmTimerItem
 import com.sfl.notifapp.data.model.TimerCategory
+import com.sfl.notifapp.data.model.ResourceType
 
 class PreferencesManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -16,6 +17,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_FARM_ID = "pref_farm_id"
         private const val KEY_NOTIFS_ENABLED = "pref_notifs_enabled"
         private const val KEY_CATEGORY_PREFIX = "pref_cat_"
+        private const val KEY_RESOURCE_PREFIX = "pref_res_"
         private const val KEY_LAST_SYNC = "pref_last_sync"
         private const val KEY_CACHED_TIMERS = "pref_cached_timers"
         private const val KEY_AUTO_SYNC_MINS = "pref_auto_sync_mins"
@@ -61,6 +63,34 @@ class PreferencesManager(context: Context) {
 
     fun setCategoryEnabled(category: TimerCategory, enabled: Boolean) {
         prefs.edit().putBoolean(KEY_CATEGORY_PREFIX + category.key, enabled).apply()
+    }
+
+    /** True when the timer should fire: category on AND (for Resources) sub-resource on. */
+    fun isTimerAllowed(category: TimerCategory, title: String): Boolean {
+        if (!isCategoryEnabled(category)) return false
+        if (category == TimerCategory.RESOURCES) {
+            val resource = ResourceType.fromTitle(title) ?: return true
+            return isResourceEnabled(resource)
+        }
+        return true
+    }
+
+    fun isResourceEnabled(resource: ResourceType): Boolean {
+        return prefs.getBoolean(KEY_RESOURCE_PREFIX + resource.key, true)
+    }
+
+    fun setResourceEnabled(resource: ResourceType, enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_RESOURCE_PREFIX + resource.key, enabled).apply()
+    }
+
+    fun setAllResourcesEnabled(enabled: Boolean) {
+        val editor = prefs.edit()
+        ResourceType.entries.forEach { editor.putBoolean(KEY_RESOURCE_PREFIX + it.key, enabled) }
+        editor.apply()
+    }
+
+    fun getEnabledResourcesCount(): Int {
+        return ResourceType.entries.count { isResourceEnabled(it) }
     }
 
     fun setAllCategoriesEnabled(enabled: Boolean) {

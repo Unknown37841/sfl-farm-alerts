@@ -6,6 +6,43 @@ import com.sfl.notifapp.R
 
 val SFL_OVERVIEW_CATEGORIES: List<TimerCategory> = TimerCategory.SFL_OVERVIEW_CATEGORIES
 
+/**
+ * Sub-categories of the Resources category. The game lumps Wood, Stone,
+ * Iron, Gold, Crimstone, Sunstone and Oil into one "Resources" bucket but
+ * users want per-resource notification control.
+ */
+enum class ResourceType(
+    val key: String,
+    val displayName: String,
+    val faName: String,
+    val iconResId: Int
+) {
+    WOOD("wood", "Wood", "چوب (درخت)", R.drawable.ic_item_tree),
+    STONE("stone", "Stone", "سنگ", R.drawable.ic_item_stone),
+    IRON("iron", "Iron", "آهن", R.drawable.ic_item_iron),
+    GOLD("gold", "Gold", "طلا", R.drawable.ic_item_gold),
+    CRIMSTONE("crimstone", "Crimstone", "کریم‌استون", R.drawable.ic_item_crimstone),
+    SUNSTONE("sunstone", "Sunstone", "سان‌استون", R.drawable.ic_item_sunstone),
+    OIL("oil", "Oil", "نفت", R.drawable.ic_item_oil);
+
+    companion object {
+        /** Maps a Resources timer title (e.g. "Wood (Tree) (x3)") back to its resource. */
+        fun fromTitle(title: String): ResourceType? {
+            val lower = title.lowercase()
+            return when {
+                lower.contains("wood") -> WOOD
+                lower.contains("crimstone") -> CRIMSTONE
+                lower.contains("sunstone") -> SUNSTONE
+                lower.contains("stone") -> STONE
+                lower.contains("iron") -> IRON
+                lower.contains("gold") -> GOLD
+                lower.contains("oil") -> OIL
+                else -> null
+            }
+        }
+    }
+}
+
 enum class TimerCategory(
     val key: String,
     val displayName: String,

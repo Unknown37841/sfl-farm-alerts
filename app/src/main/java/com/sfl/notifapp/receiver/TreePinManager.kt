@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.sfl.notifapp.data.model.FarmTimerItem
+import com.sfl.notifapp.data.model.TimerCategory
 import com.sfl.notifapp.data.model.productKey
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.data.storage.TreePinInfo
@@ -75,7 +76,18 @@ object TreePinManager {
             return
         }
 
-        val info = prefs.getTreePinInfo(farmId, key) ?: TreePinInfo(
+        // Category/resource settings may have disabled this product while the
+        // chain was running — honor them and stop the reminder loop.
+        val savedInfo = prefs.getTreePinInfo(farmId, key)
+        if (savedInfo != null) {
+            val category = TimerCategory.fromKey(savedInfo.categoryKey)
+            if (!prefs.isTimerAllowed(category, savedInfo.title)) {
+                Log.i(TAG, "Category/resource disabled while chain active for $key — stopping")
+                stop(context, farmId, key)
+                return
+            }
+        }
+        val info = savedInfo ?: TreePinInfo(
             title = intent.getStringExtra(AlarmReceiver.EXTRA_TITLE) ?: "محصول",
             body = intent.getStringExtra(AlarmReceiver.EXTRA_BODY) ?: "آماده است",
             categoryKey = intent.getStringExtra(AlarmReceiver.EXTRA_CATEGORY) ?: "",

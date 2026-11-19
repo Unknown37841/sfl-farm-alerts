@@ -87,10 +87,17 @@ class SettingsBottomSheet(
         }
 
         // 3. Setup 29 Categories RecyclerView
-        categoryAdapter = CategorySettingsAdapter(prefs) { _, _ ->
-            updateCountText()
-            rescheduleAlarms()
-        }
+        categoryAdapter = CategorySettingsAdapter(
+            prefs,
+            onToggleChanged = { _, _ ->
+                updateCountText()
+                rescheduleAlarms()
+            },
+            onResourceToggleChanged = { _, _ ->
+                // Resource sub-toggles also change which alarms may fire
+                rescheduleAlarms()
+            }
+        )
         binding.rvCategories.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = categoryAdapter

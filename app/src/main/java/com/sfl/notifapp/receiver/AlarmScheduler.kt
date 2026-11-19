@@ -41,8 +41,9 @@ object AlarmScheduler {
         }
 
         for (timer in timers) {
-            // Only schedule if category is enabled in settings and readyAt is in the future
-            if (!prefs.isCategoryEnabled(timer.category)) continue
+            // Only schedule if category (and for Resources the sub-resource) is enabled
+            // in settings and readyAt is in the future
+            if (!prefs.isTimerAllowed(timer.category, timer.title)) continue
             if (timer.readyAt <= now) continue
 
             val intent = Intent(context, AlarmReceiver::class.java).apply {
