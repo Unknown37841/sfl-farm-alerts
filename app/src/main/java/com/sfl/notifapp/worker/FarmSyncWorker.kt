@@ -13,6 +13,7 @@ import com.sfl.notifapp.data.api.SflApiClient
 import com.sfl.notifapp.data.engine.SflTimerEngine
 import com.sfl.notifapp.data.storage.PreferencesManager
 import com.sfl.notifapp.receiver.AlarmScheduler
+import com.sfl.notifapp.receiver.CatchUpNotifier
 import com.sfl.notifapp.receiver.TreePinManager
 import java.util.concurrent.TimeUnit
 
@@ -69,6 +70,9 @@ class FarmSyncWorker(
 
                     // Reschedule exact alarms
                     AlarmScheduler.scheduleTimers(applicationContext, timers)
+                    // Safety net: notify any timer that is already due but whose
+                    // notification was lost (Doze batching, reboot, reschedule race).
+                    CatchUpNotifier.notifyDueTimers(applicationContext, "sync")
                     Result.success()
                 } catch (e: Exception) {
                     Log.e(TAG, "Error processing farm timers: ${e.message}", e)

@@ -98,7 +98,7 @@ class AlarmReceiver : BroadcastReceiver() {
             }
 
             // 3. Debounce: if this item was already notified within the last 5 minutes, skip
-            val notifKey = "${farmId}_${categoryKey}_${title}"
+            val notifKey = CatchUpNotifier.notifKey(farmId, categoryKey, title)
             val lastNotified = prefs.getLastNotifiedTime(notifKey)
             if (now - lastNotified < 5 * 60_000L) {
                 Log.i(TAG, "Debouncing repeated notification for $notifKey")
@@ -122,6 +122,8 @@ class AlarmReceiver : BroadcastReceiver() {
             // Auto-schedule background farm sync after 5 minutes so when the user harvests
             // and replants, the app fetches new farm timers automatically without opening the app!
             schedulePostAlarmSync(context)
+            // Safety net: while awake, notify sibling timers whose alarms were lost (Doze batching).
+            CatchUpNotifier.notifyDueTimers(context, "alarm")
         } finally {
             if (wakeLock?.isHeld == true) {
                 wakeLock.release()

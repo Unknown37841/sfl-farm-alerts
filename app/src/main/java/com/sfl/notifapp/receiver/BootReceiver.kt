@@ -46,6 +46,10 @@ class BootReceiver : BroadcastReceiver() {
 
             // Re-arm any "remind until harvested" chains lost on reboot
             TreePinManager.restoreActive(context)
+
+            // Safety net: notify any timer that became ready during the power-off
+            // window — its alarm did not survive the reboot, so catch it up now.
+            CatchUpNotifier.notifyDueTimers(context, "boot")
         }
     }
 }
